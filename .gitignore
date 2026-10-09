@@ -20,12 +20,14 @@ dist/
 
 # Local media, model weights, and experiment artifacts
 data/
+outputs/
 videos/
 models/
 runs/
 wandb/
 artifacts/
 *.mp4
+!examples/fightlens-mock-demo.mp4
 *.mov
 *.mkv
 *.avi
