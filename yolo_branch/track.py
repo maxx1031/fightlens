@@ -1,4 +1,4 @@
-"""Track the first ten seconds: python track.py path/to/video.mp4 [video2.mp4]."""
+"""Track the first N seconds (default 10): python track.py [--seconds 25] video.mp4 [video2.mp4]."""
 from pathlib import Path
 import argparse
 import itertools
@@ -252,6 +252,8 @@ def run(video):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("videos",type=Path,nargs="+")
+    parser.add_argument("--seconds",type=float,default=MAX_SECONDS)
     args = parser.parse_args()
+    MAX_SECONDS = args.seconds
     for video in args.videos:
         run(video)

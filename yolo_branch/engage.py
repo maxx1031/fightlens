@@ -4,8 +4,7 @@
 
 Reads <clip>/keypoints.jsonl (track.py) and writes, in the same folder:
 exchange.jsonl (per frame: engaged 0/1), windows.jsonl (Cosmos frame-sampling
-windows), engage.png (signals with state background), and engage.mp4
-(annotated.mp4 with the current state overlaid).
+windows) and engage.png (signals with state background, for tuning).
 
 ENGAGE (engaged = 1) means someone is attacking -- an arm extends or a limb
 moves fast -- while the two are within striking range, or they are clinched.
@@ -16,8 +15,6 @@ from pathlib import Path
 import argparse
 import json
 import os
-import shutil
-import subprocess
 
 ROOT = Path(__file__).resolve().parent
 os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".mplconfig"))
@@ -57,7 +54,6 @@ ENGAGE_PAD_S = 0.25
 ENGAGE_MAX_S = 2.0
 SAMPLE_FPS = {"FAR": 0.5, "RANGE": 4.0}     # ENGAGE uses the source frame rate
 STATE_COLORS = {"FAR": "#d9e6f2", "RANGE": "#ffe3a3", "ENGAGE": "#ffb3b3", "MISSING": "#dddddd"}
-STATE_BGR = {"FAR": (200, 160, 60), "RANGE": (0, 190, 255), "ENGAGE": (60, 60, 230), "MISSING": (150, 150, 150)}
 LIMBS = (9, 10, 15, 16)     # wrists, ankles
 ARMS = ((5, 7, 9), (6, 8, 10))  # shoulder, elbow, wrist
 
@@ -134,19 +130,25 @@ def guard(x, cuts):
     return x
 
 
+def torso_scale(torso, fps, cuts):
+    """Trailing median of torso length within the current shot (zoom changes at cuts)."""
+    k = max(1, int(TORSO_WINDOW_S * fps))
+    n = len(torso)
+    shot_start = np.maximum.accumulate(np.isin(np.arange(n), cuts) * np.arange(n))
+    scale = np.full(n, np.nan)
+    for i in range(n):
+        seg = torso[max(shot_start[i], i - k + 1):i + 1]
+        if not np.isnan(seg).all():
+            scale[i] = np.nanmedian(seg)
+    return scale
+
+
 def signals(t, kp, fps, cuts):
     hips = mid(kp, 11, 12)                         # (n, 2, 2)
     shoulders = mid(kp, 5, 6)
     torso = np.linalg.norm(shoulders - hips, axis=-1)          # (n, 2)
     torso = np.nanmean(torso, axis=1)
-    # Trailing median of torso length within the current shot (zoom changes at cuts).
-    k = max(1, int(TORSO_WINDOW_S * fps))
-    shot_start = np.maximum.accumulate(np.isin(np.arange(len(t)), cuts) * np.arange(len(t)))
-    scale = np.full(len(t), np.nan)
-    for i in range(len(t)):
-        seg = torso[max(shot_start[i], i - k + 1):i + 1]
-        if not np.isnan(seg).all():
-            scale[i] = np.nanmedian(seg)
+    scale = torso_scale(torso, fps, cuts)
 
     d = np.linalg.norm(hips[:, 0] - hips[:, 1], axis=-1) / scale
     d = trailing_mean(interp_short(guard(d, cuts), fps), SMOOTH_FRAMES)
@@ -253,7 +255,6 @@ def build_windows(t, states, d, d_dot, w, fps, duration):
             eng.append([s, e])
     windows = []
     for s, e in eng:
-        m = (t >= s) & (t < e)
         for ps, pe, note in split_long(s, e, t, w):
             pm = (t >= ps) & (t < pe)
             reason = f"d_min={np.nanmin(d[pm]):.2f} w_peak={np.nanmax(w[pm]):.1f}" if pm.any() and not np.isnan(d[pm]).all() else "padding"
@@ -314,40 +315,9 @@ def plot(t, d, d_dot, w, ext, engaged, states, cuts, path):
     fig.savefig(path, dpi=120)
 
 
-def overlay(clip_dir, t, states, engaged, d, w, ext):
-    src = clip_dir / "annotated.mp4"
-    if not src.exists():
-        return None
-    cap = cv2.VideoCapture(str(src))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    W, H = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    out = clip_dir / "engage.mp4"
-    ffmpeg = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
-    proc = subprocess.Popen([ffmpeg, "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "bgr24",
-                             "-s", f"{W}x{H}", "-r", str(fps), "-i", "-", "-an", "-c:v", "libx264",
-                             "-pix_fmt", "yuv420p", "-crf", "20", str(out)], stdin=subprocess.PIPE)
-    i = 0
-    while True:
-        ok, frame = cap.read()
-        if not ok:
-            break
-        if i < len(states):
-            st = states[i]
-            text = (f"{int(engaged[i])} {st}  d={d[i]:.2f} w={w[i]:.1f} ext={ext[i]:.2f}"
-                    if not np.isnan(d[i]) else f"{int(engaged[i])} {st}")
-            cv2.rectangle(frame, (10, H - 60), (20 + 17 * len(text), H - 15), (0, 0, 0), -1)
-            cv2.putText(frame, text, (20, H - 27), cv2.FONT_HERSHEY_SIMPLEX, 0.9, STATE_BGR[st], 2)
-        proc.stdin.write(frame.tobytes())
-        i += 1
-    proc.stdin.close()
-    proc.wait()
-    return out
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("clip_dir", help="e.g. outputs/pereira_rountree_45s")
-    ap.add_argument("--no-open", action="store_true")
     args = ap.parse_args()
     clip_dir = Path(args.clip_dir)
     if not clip_dir.is_absolute() and not clip_dir.exists():
@@ -376,7 +346,6 @@ def main():
         for i in range(len(t)):
             f.write(json.dumps({"t": round(float(t[i]), 3), "engaged": int(engaged[i])}) + "\n")
     plot(t, d, d_dot, w, ext, engaged, states, cuts, clip_dir / "engage.png")
-    video = overlay(clip_dir, t, states, engaged, d, w, ext)
 
     seconds = {s: round(sum(win["end"] - win["start"] for win in windows if win["state"] == s), 2)
                for s in ("FAR", "RANGE", "ENGAGE")}
@@ -389,12 +358,9 @@ def main():
           ((s_[3], s_[4]) for s_ in segments(t, ["1" if e else "0" for e in engaged], fps) if s_[2] == "1")]
     print(f"engaged = 1: {len(on)} segments, {engaged.mean() * 100:.0f}% of frames — "
           + ", ".join(f"{a:.2f}-{b:.2f}" for a, b in on))
-    print(f"Camera cuts at: " + ", ".join(f"{t[c]:.2f}s" for c in cuts))
+    print("Camera cuts at: " + ", ".join(f"{t[c]:.2f}s" for c in cuts))
     print(f"ENGAGE windows: {len(eng)} — " + ", ".join(f"{s:.2f}-{e:.2f}" for s, e in eng))
     print(f"Cosmos frames: {cosmos_frames:.0f} of {len(t)} ({100 * cosmos_frames / len(t):.1f}% of all frames)")
-
-    if not args.no_open:
-        subprocess.run(["open", str(clip_dir / "engage.png")] + ([str(video)] if video else []))
 
 
 if __name__ == "__main__":
