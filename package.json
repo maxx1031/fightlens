@@ -1,0 +1,43 @@
+{
+  "name": "fightlens",
+  "version": "0.2.0",
+  "private": true,
+  "description": "A responsive FightLens video and momentum demo built with Next.js.",
+  "packageManager": "pnpm@11.13.1",
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0 --port 4173",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0 --port 4173",
+    "typecheck": "tsc --noEmit",
+    "live:setup": "node scripts/setup-live.mjs",
+    "live:dev": "node scripts/run-live.mjs",
+    "live:start": "node scripts/run-live.mjs --production",
+    "live:check": "node scripts/check-live-api.mjs"
+  },
+  "dependencies": {
+    "@radix-ui/react-slider": "1.5.0",
+    "@radix-ui/react-slot": "1.4.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "livekit-client": "2.22.4",
+    "livekit-server-sdk": "2.19.1",
+    "lucide-react": "1.54.0",
+    "next": "16.4.0",
+    "qrcode.react": "4.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-is": "19.3.0",
+    "recharts": "3.10.1",
+    "tailwind-merge": "2.6.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.14.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "autoprefixer": "10.6.1",
+    "postcss": "8.5.29",
+    "tailwindcss": "3.4.19",
+    "typescript": "5.8.3"
+  }
+}
