@@ -44,33 +44,40 @@ and encoding, but excludes model download/loading. ID reconnections are logged
 separately from missing intervals and do not by themselves prove identity swaps.
 The output video is silent and opens with macOS `open` after encoding.
 
-## Demo clip: exchange 0/1 and live viewer
+## Demo: UFC round + local round in the arcade HUD
 
 ```bash
 cd yolo_branch
-# 1. Track (track.py stops at 10 s by default; override for longer clips)
-.venv/bin/python -c "import track; from pathlib import Path; track.MAX_SECONDS = 25; track.run(Path('../examples/0_realhuman.mp4'))"
-# 2. Distances: centre of gravity, wrist-to-opponent, arm extension
-.venv/bin/python measure.py outputs/0_realhuman --no-open
-# 3. Engagement state machine and per-frame engaged 0/1
-.venv/bin/python engage.py outputs/0_realhuman --no-open
-# 4. HTML viewer: video on top, curves and the 0/1 strip drawn as it plays
-.venv/bin/python viewer.py outputs/0_realhuman --end 15
+# 1. Track each source on its own (default 10 s)
+.venv/bin/python track.py ../data/raw/pereira_rountree_45s.mp4
+.venv/bin/python track.py --seconds 25 ../examples/0_realhuman.mp4
+# 2. Distances and 3. engagement 0/1, per source
+for c in pereira_rountree_45s 0_realhuman; do
+  .venv/bin/python measure.py outputs/$c && .venv/bin/python engage.py outputs/$c
+done
+# 4. Join the rounds: clip_dir:start:end:title:A name:B name
+.venv/bin/python concat.py outputs/demo_ufc_local \
+    "outputs/pereira_rountree_45s:0:10:UFC 300 replay:PEREIRA:ROUNTREE" \
+    "outputs/0_realhuman:0:15:Local arena:BLACK KIT:WHITE KIT"
+# 5. Publish to examples/arcade (data.js, analysis.html, measure.mp4) and open it
+.venv/bin/python viewer.py outputs/demo_ufc_local
 ```
 
-| Script | Output in `outputs/<clip>/` |
+| Script | Output |
 | --- | --- |
-| `measure.py` | `measure.jsonl` (per frame: `com_dist`, `reach_A/B`, `ext_A/B`), `measure.png`, `measure.mp4` |
-| `engage.py` | `exchange.jsonl` (per frame `engaged` 0/1), `windows.jsonl` (FAR / RANGE / ENGAGE sampling windows for the video model), `engage.png`, `engage.mp4` |
-| `viewer.py` | `viewer.html` or `viewer_0-<end>s.html` (self-contained; opens from Finder) |
-| `realtime.py` | Wall-clock-paced tracking with frame skipping; `tracks.jsonl` in contract format and a latency summary |
+| `measure.py` | `outputs/<clip>/measure.jsonl` (per frame: `com_dist`, `reach_A/B`, `ext_A/B`), `measure.mp4` (overlay) |
+| `engage.py` | `outputs/<clip>/exchange.jsonl` (per frame `engaged` 0/1), `windows.jsonl` (FAR / RANGE / ENGAGE sampling windows for the video model), `engage.png` (tuning plot) |
+| `concat.py` | `outputs/<name>/`: joined `measure.mp4`, data resampled to 30 fps, `segments.json` (rounds), camera cuts |
+| `viewer.py` | `examples/arcade/data.js`, `analysis.html` (from `viewer_template.html`), `measure.mp4` |
 
-All distances are divided by the fighters' mean torso length. `engaged = 1`
-when someone attacks (arm extension >= 0.85 or a wrist/ankle speed peak) while
-the two are within 2.2 torso lengths, or when they are clinched; attacks less
-than 1 s apart form one exchange, padded by 0.25 s. Camera cuts are detected
-from frame histograms and excluded from the signals.
+Each source is tracked and measured on its own, so A/B identity and the
+torso scale restart at every join. All distances are divided by the
+fighters' mean torso length. `engaged = 1` when someone attacks (arm
+extension >= 0.85 or a wrist/ankle speed peak) while the two are within 2.2
+torso lengths, or when they are clinched; attacks less than 1 s apart form
+one exchange, padded by 0.25 s. Camera cuts are detected from frame
+histograms; signals and the torso scale reset at each cut.
 
-These thresholds were tuned on `0_realhuman` against rough hand labels at 0.5 s
-resolution (89% frame agreement over 0-15 s). That is an in-sample check, not a
-measured accuracy; re-check on new footage.
+These thresholds were tuned on `0_realhuman` against rough hand labels at
+0.5 s resolution (89% frame agreement over 0-15 s). That is an in-sample
+check, not a measured accuracy; re-check on new footage.
