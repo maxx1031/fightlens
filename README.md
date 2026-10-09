@@ -12,7 +12,7 @@ Built for the Real-Time Video Agents Hack — NYC, October 9, 2026.
 
 ### Demo videos
 
-Click a preview to open the full recording; GitHub plays it in the file view.
+Click a preview to open the full recording (MP4; download or open with "View raw" if GitHub does not play it inline).
 
 | Demo 1 (53 s) | Demo 2 (51 s) |
 | --- | --- |
