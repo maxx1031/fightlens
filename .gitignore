@@ -20,6 +20,7 @@ dist/
 
 # Local media, model weights, and experiment artifacts
 data/
+outputs/
 videos/
 models/
 runs/

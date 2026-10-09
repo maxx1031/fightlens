@@ -1,0 +1,78 @@
+{
+  "schema_version": "0.1",
+  "clip_id": "pereira_rountree_45s",
+  "video": {
+    "path": "data/raw/pereira_rountree_45s.mp4",
+    "fps": 29.97,
+    "width": 1280,
+    "height": 720,
+    "duration_s": 45.012
+  },
+  "fighters": {
+    "A": {
+      "name": null,
+      "color": "#e5484d"
+    },
+    "B": {
+      "name": null,
+      "color": "#3e63dd"
+    }
+  },
+  "updated_at_s": 15.9,
+  "events": [
+    {
+      "event_id": "c0017",
+      "t_s": 12.43,
+      "attacker": "A",
+      "defender": "B",
+      "limb": "right_hand",
+      "outcome": "landed",
+      "contact_zone": "head",
+      "evidence_times_s": [
+        12.4,
+        12.433,
+        12.467
+      ],
+      "status": "accepted",
+      "revision": 1,
+      "sources": [
+        "yolo",
+        "video"
+      ],
+      "uncertainty_reason": null
+    },
+    {
+      "event_id": "c0018",
+      "t_s": 12.91,
+      "attacker": "B",
+      "defender": "A",
+      "limb": "left_foot",
+      "outcome": "unknown",
+      "contact_zone": null,
+      "evidence_times_s": [],
+      "status": "accepted",
+      "revision": 1,
+      "sources": [
+        "yolo",
+        "video"
+      ],
+      "uncertainty_reason": "occluded"
+    },
+    {
+      "event_id": "c0019",
+      "t_s": 13.52,
+      "attacker": "A",
+      "defender": "B",
+      "limb": "left_hand",
+      "outcome": null,
+      "contact_zone": null,
+      "evidence_times_s": [],
+      "status": "pending",
+      "revision": 0,
+      "sources": [
+        "yolo"
+      ],
+      "uncertainty_reason": null
+    }
+  ]
+}
