@@ -13,6 +13,10 @@ each segment's measure.mp4, joins them at a common frame rate, resamples the
 per-frame data onto the joined timeline, and writes measure.mp4,
 measure.jsonl, exchange.jsonl, summary.json, segments.json and (when the
 segments have them) labels_eyeball.json into the output folder.
+
+If a segment has win_prob.jsonl (win_prob.py), each frame gets win_A: the
+latest probability for A whose one-second window had ended by that frame,
+null before the round's first result. Decision times go to win_points.json.
 """
 from pathlib import Path
 import argparse
@@ -55,17 +59,26 @@ def main():
 
     # Data: resample each segment onto the joined 30 fps grid (nearest frame).
     measure_rows, exchange_rows, segments, cuts, labels, label_ranges = [], [], [], [], [], []
+    win_points = []
     offset = 0.0
     for clip, start, end, names in segs:
         m = [json.loads(line) for line in (clip / "measure.jsonl").open()]
         x = [json.loads(line) for line in (clip / "exchange.jsonl").open()]
         src_t = np.array([r["t"] for r in m])
         n = int(round((end - start) * FPS))
+        wp_file = clip / "win_prob.jsonl"
+        wins = [json.loads(line) for line in wp_file.open()] if wp_file.exists() else []
+        wins = [w for w in wins if w.get("probabilities") and start < w["end_s"] <= end]
+        for w in wins:
+            if w["status"] == "ok":
+                win_points.append({"t": round(offset + w["end_s"] - start, 3), "A": w["probabilities"]["A"]})
         for k in range(n):
             j = int(np.argmin(np.abs(src_t - (start + k / FPS))))
             t = round(offset + k / FPS, 3)
             measure_rows.append({**m[j], "t": t})
-            exchange_rows.append({"t": t, "engaged": x[j]["engaged"]})
+            ready = [w for w in wins if w["end_s"] <= start + k / FPS + 1e-6]
+            win_a = ready[-1]["probabilities"]["A"] if ready else None
+            exchange_rows.append({"t": t, "engaged": x[j]["engaged"], "win_A": win_a})
         summary = json.loads((clip / "summary.json").read_text())
         fps = summary["source_fps"]
         cuts += [round(offset + c / fps - start, 3) for c in find_cuts(summary["video"], len(m))
@@ -86,6 +99,7 @@ def main():
         f.writelines(json.dumps(r) + "\n" for r in measure_rows)
     with (out / "exchange.jsonl").open("w") as f:
         f.writelines(json.dumps(r) + "\n" for r in exchange_rows)
+    (out / "win_points.json").write_text(json.dumps(win_points))
     (out / "segments.json").write_text(json.dumps(segments, ensure_ascii=False, indent=2))
     (out / "summary.json").write_text(json.dumps(
         {"source_fps": FPS, "video": str((out / "measure.mp4").resolve()), "cuts_s": sorted(cuts)}, indent=2))
