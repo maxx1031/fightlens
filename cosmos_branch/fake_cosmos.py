@@ -78,7 +78,7 @@ def serve(port: int = 9001, delay: float = 0.0, think: bool = False) -> Threadin
                 content = message.get("content")
                 for part in content if isinstance(content, list) else [{"type": "text", "text": content or ""}]:
                     prompt += part.get("text", "") if part.get("type") == "text" else ""
-                    has_video = has_video or part.get("type") == "video_url"
+                    has_video = has_video or part.get("type") in ("video_url", "video_frames")
             kind, text = answer(prompt)
             server.asked.append((kind, has_video))
             time.sleep(delay)

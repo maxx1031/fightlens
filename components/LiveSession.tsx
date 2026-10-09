@@ -12,6 +12,7 @@ import {
   setLogLevel,
 } from "livekit-client";
 import { CameraPublisher } from "@/components/CameraPublisher";
+import { CosmosCaption } from "@/components/CosmosCaption";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -326,7 +327,7 @@ export function LiveSession({
       : "Pause requested…"
     : latest?.analysis.mode === "paused"
       ? "Resume requested…"
-      : "Diagnostic only · no model connected";
+      : "Receiver diagnostics · Cosmos caption status is below the video";
   return (
     <div className="min-h-svh pb-6">
       <header className="border-b">
@@ -443,6 +444,17 @@ export function LiveSession({
                       aria-label="Remote session video"
                       onClick={() => void received.current?.play()}
                     />
+                    <CosmosCaption
+                      snapshot={snapshot}
+                      fresh={fresh}
+                      onConfirm={async (fighters) => {
+                        await liveRequest(
+                          `/api/sessions/${id}/caption-settings`,
+                          fighters,
+                        );
+                        await refresh();
+                      }}
+                    />
                     <p className="text-xs text-muted-foreground">
                       {frameSize || "Waiting for the published track"}
                       {viewerCodec ? ` · ${viewerCodec}` : ""}. Viewing playback
@@ -473,7 +485,7 @@ export function LiveSession({
                   <div className="flex h-40 items-center justify-center rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
                     Numeric momentum unavailable
                     <br />
-                    No analysis model is connected.
+                    Captions do not calculate numeric momentum.
                   </div>
                   <div className="space-y-2 text-sm" aria-live="polite">
                     <p>{backend}</p>

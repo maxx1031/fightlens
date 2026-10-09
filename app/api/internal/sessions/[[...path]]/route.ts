@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { diagnosticSchema } from "@/lib/live/types";
+import { captionUpdateSchema, diagnosticSchema } from "@/lib/live/types";
 import {
   active,
   findSession,
@@ -50,6 +50,7 @@ export async function GET(request: NextRequest, context: Context) {
         session.workerIdentity = `worker-${session.workerGeneration}-${randomUUID()}`;
         session.segmentId = randomUUID();
         session.latest = null;
+        session.caption = null;
         session.updatedAt = null;
         session.revision += 1;
       }
@@ -70,7 +71,10 @@ export async function POST(request: NextRequest, context: Context) {
   try {
     internalAuth(request);
     const path = (await context.params).path || [];
-    if (path.length !== 2 || !["updates", "segment"].includes(path[1]))
+    if (
+      path.length !== 2 ||
+      !["updates", "segment", "captions"].includes(path[1])
+    )
       throw new LiveError("not_found", "Unknown endpoint.", 404);
     const session = findSession(path[0]);
     active(session);
@@ -94,9 +98,48 @@ export async function POST(request: NextRequest, context: Context) {
         );
       session.segmentId = randomUUID();
       session.latest = null;
+      session.caption = null;
       session.updatedAt = null;
       session.revision += 1;
       return response(snapshot(session));
+    }
+    if (path[1] === "captions") {
+      const update = captionUpdateSchema.parse(await body(request));
+      if (
+        update.session_id !== session.id ||
+        update.source_generation !== session.sourceGeneration ||
+        update.worker_generation !== session.workerGeneration ||
+        update.segment_id !== session.segmentId ||
+        update.analysis_revision !== session.analysisRevision
+      )
+        throw new LiveError(
+          "stale_generation",
+          "Caption source or analysis has changed.",
+          409,
+        );
+      if (session.paused && update.status !== "paused")
+        throw new LiveError(
+          "analysis_paused",
+          "Caption analysis is paused.",
+          409,
+        );
+      if (update.caption && !session.captionFighters)
+        throw new LiveError(
+          "identity_required",
+          "Fighter identities have not been confirmed.",
+          409,
+        );
+      if (session.caption && update.seq <= session.caption.seq)
+        return response({ accepted: false });
+      if (
+        update.caption &&
+        session.caption?.caption &&
+        update.caption.t1_s < session.caption.caption.t1_s
+      )
+        return response({ accepted: false });
+      session.caption = update;
+      session.revision += 1;
+      return response({ accepted: true });
     }
     const update = diagnosticSchema.parse(await body(request));
     if (

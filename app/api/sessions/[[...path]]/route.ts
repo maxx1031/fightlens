@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
+import { captionSettingsSchema } from "@/lib/live/types";
 import {
   active,
   cleanup,
@@ -131,6 +132,7 @@ export async function POST(request: NextRequest, context: Context) {
     if (action === "stop") {
       if (session.state !== "ended") session.revision += 1;
       session.state = "ended";
+      session.caption = null;
       session.endedAt ??= Date.now();
       session.cleanupPending = true;
       await cleanup(session);
@@ -210,6 +212,25 @@ export async function POST(request: NextRequest, context: Context) {
       const { paused } = z.object({ paused: z.boolean() }).parse(data);
       remember(session, role, action, requestId, () => {
         session.paused = paused;
+        session.analysisRevision += 1;
+        session.caption = null;
+        session.revision += 1;
+        return true;
+      });
+      return response(snapshot(session, role));
+    }
+    if (action === "caption-settings") {
+      if (role !== "owner")
+        throw new LiveError(
+          "forbidden",
+          "Only the owner can confirm fighter identities.",
+          403,
+        );
+      const fighters = captionSettingsSchema.parse(data);
+      remember(session, role, action, requestId, () => {
+        session.captionFighters = fighters;
+        session.analysisRevision += 1;
+        session.caption = null;
         session.revision += 1;
         return true;
       });
@@ -219,6 +240,7 @@ export async function POST(request: NextRequest, context: Context) {
       remember(session, role, action, requestId, () => {
         session.segmentId = randomUUID();
         session.latest = null;
+        session.caption = null;
         session.updatedAt = null;
         session.revision += 1;
         return true;

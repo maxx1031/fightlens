@@ -343,7 +343,8 @@ export function CameraPublisher({
         </p>
         <p className="text-xs text-muted-foreground">
           Preview is local. Start live sends video to the media and analysis
-          services. No recording is saved.
+          services. When captions are enabled, short sampled windows are sent to
+          Cosmos. This app keeps them only in memory and saves no recording.
         </p>
         {error && (
           <p className="text-sm text-destructive" role="alert">

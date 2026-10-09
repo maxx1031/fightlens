@@ -15,6 +15,11 @@ Regenerate data.js, analysis.html and measure.mp4 from yolo_branch:
         "outputs/0_realhuman:0:15:Local arena:BLACK KIT:WHITE KIT"
     python viewer.py outputs/demo_ufc_local
 
+The win-probability bar at the top comes from yolo_branch/win_prob.py: Luna
+Decisions (via OpenRouter) is asked only for seconds YOLO marks as engaged,
+twice with A/B swapped to cancel its preference for the first-listed fighter.
+Other seconds hold the previous value. It is an uncalibrated model estimate.
+
 This is an offline replay of precomputed YOLO measurements, not live inference
 or a connected database. Engagement comes from yolo_branch/engage.py. Punch
 candidates use extension threshold crossings at 0.9, not confirmed hits.

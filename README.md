@@ -9,6 +9,12 @@ Built for the Real-Time Video Agents Hack — NYC, October 9, 2026.
 **Status: live camera transport and diagnostic receiver implemented; video analysis remains planned.** The Next.js application uses React, TypeScript, shadcn/ui, Recharts, and LiveKit. A desktop or paired phone publishes a camera track to the viewer and Python receiver. The live UI reports actual receiver frames and explicitly leaves numeric momentum unavailable. There is no connected strike classifier or measured inference performance result yet.
 
 For the live MVP, run `pnpm install --frozen-lockfile`, `pnpm live:setup`, and `pnpm live:dev`, then open `http://localhost:4173`. See [live setup and deployment boundaries](docs/LIVE_SETUP.md) for prerequisites and phone access. [The web MVP guide](docs/WEB_MVP.md) covers the separate Demo/local-file mode. All Demo curve values are simulated. The earlier Chrome prototype remains in [extension/](extension/README.md) for reference.
+## Local web application
+
+The Next.js application uses React, TypeScript, shadcn/ui, Recharts, and LiveKit. A desktop or paired phone publishes a camera track to the viewer and Python receiver. The live UI reports receiver frames and leaves numeric momentum unavailable. The separate Demo/local-file mode uses a simulated momentum curve. Optional [Cosmos captions](docs/COSMOS_CAPTIONS.md) reuse the exchange-review prompt/parser on short live frame windows and display the returned note below the video. Real-provider compatibility and caption accuracy remain unverified.
+
+For local review, run `pnpm install --frozen-lockfile`, `pnpm live:setup`, and `pnpm live:dev`, then open `http://localhost:4173`. See [live setup and deployment boundaries](docs/LIVE_SETUP.md), [the web MVP guide](docs/WEB_MVP.md), and [local transport verification](docs/LIVE_VERIFICATION.md). Physical-phone and TURN acceptance remain outstanding. The earlier Chrome prototype remains in [extension/](extension/README.md).
+
 ## Why FightLens
 
 During a fast exchange, a viewer has only a moment to decide: did that punch land, was it blocked, and who now has the advantage?
@@ -93,7 +99,7 @@ The longer-term opportunity is a reusable analysis layer for combat sports. An a
 
 ## Current repository status
 
-This checkout contains the project design, module interface contract, fictional sample data, earlier scripted visual assets, and [YOLO tracking and exchange-analysis scripts](yolo_branch/README.md). Those scripts feed the [arcade replay demo](examples/arcade/README.md), which plays recorded footage with precomputed motion signals. [Cosmos per-second scene understanding](#cosmos-per-second-video-understanding-smoke-test) and [Luna Decisions win probabilities](#openrouter-per-second-win-probability-demo) exist as smoke-test scripts. The synchronized win-probability curves, YOLO video, and commentary interface, live inference, VAST integration, and computer/phone camera capture remain planned. The product experience above describes the target demo; end-to-end validation remains outstanding.
+This checkout contains the project design, module interface contract, fictional sample data, earlier scripted visual assets, and [YOLO tracking and exchange-analysis scripts](yolo_branch/README.md). Those scripts feed the [arcade replay demo](examples/arcade/README.md), which plays recorded footage with precomputed motion signals. [Cosmos per-second scene understanding](#cosmos-per-second-video-understanding-smoke-test) and [Luna Decisions win probabilities](#openrouter-per-second-win-probability-demo) exist as smoke-test scripts. The Next.js camera transport and Python receiver include an optional live Cosmos caption path. The synchronized win-probability curves, live YOLO inference, and VAST integration remain planned; physical-phone camera acceptance remains outstanding. The product experience above describes the target demo; end-to-end validation remains outstanding.
 
 ### First engineering milestone
 

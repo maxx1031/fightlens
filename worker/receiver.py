@@ -1,4 +1,4 @@
-"""Video-only diagnostic receiver. No model, recording, or pixel logging."""
+"""Live camera receiver with optional, bounded Cosmos captions. No recording."""
 
 import asyncio
 import contextlib
@@ -16,7 +16,10 @@ import aiohttp
 from dotenv import load_dotenv
 from livekit import rtc
 
-load_dotenv(Path(__file__).resolve().parents[1] / ".env.local")
+ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(ROOT / ".env.local")
+load_dotenv(ROOT / ".env")
+from captions import CaptionPipeline, LiveCosmos, encode_frame
 logging.basicConfig(level=logging.WARNING)
 # RTC connection exceptions can include URLs; print only application status codes.
 logging.getLogger("livekit").setLevel(logging.CRITICAL)
@@ -26,7 +29,7 @@ KEY = os.getenv("FIGHTLENS_WORKER_SECRET", "")
 
 
 class Receiver:
-    def __init__(self, session, http):
+    def __init__(self, session, http, cosmos):
         self.session = session
         self.http = http
         self.room = rtc.Room()
@@ -40,7 +43,22 @@ class Receiver:
         self.subscriber = None
         self.track_id = None
         self.seq = 0
+        self.closed = False
+        self.captions = CaptionPipeline(cosmos, session, self.valid)
+        self.caption_runner = None
         self.reset_metrics()
+
+    def control(self, session):
+        if session.get("revision", 0) < self.session.get("revision", 0):
+            return
+        if session["segmentId"] != self.session["segmentId"]:
+            self.seq = 0
+            self.reset_metrics()
+            while not self.frames.empty():
+                self.frames.get_nowait()
+        self.session.update(session)
+        self.captions.configure(session)
+        self.lease = time.monotonic()
 
     def reset_metrics(self):
         self.started = None
@@ -65,7 +83,7 @@ class Receiver:
         ) as response:
             if response.status != 200:
                 return False
-            self.session.update(await response.json())
+            self.control(await response.json())
         self.seq = 0
         self.reset_metrics()
         while not self.frames.empty():
@@ -73,7 +91,7 @@ class Receiver:
         return True
 
     def valid(self):
-        return time.monotonic() - self.lease < 5
+        return not self.closed and time.monotonic() - self.lease < 5
 
     async def start(self):
         @self.room.on("track_subscribed")
@@ -111,6 +129,7 @@ class Receiver:
                 admit(publication, participant)
         self.consumer = asyncio.create_task(self.consume())
         self.reporter = asyncio.create_task(self.report())
+        self.caption_runner = asyncio.create_task(self.captions.run())
 
     async def attach(self, track, track_id):
         if self.reader:
@@ -157,22 +176,28 @@ class Receiver:
                 self.frames.get_nowait()
                 self.drops += 1
             self.frames.put_nowait(
-                (event.frame, (now - self.started) * 1000, self.session["segmentId"])
+                (event.frame, (now - self.started) * 1000, self.captions.key)
             )
 
     async def consume(self):
         while True:
-            frame, position, segment = await self.frames.get()
+            frame, position, key = await self.frames.get()
             if (
                 not self.valid()
-                or segment != self.session["segmentId"]
+                or key != self.captions.key
                 or self.session["paused"]
             ):
                 del frame
                 continue
             start = time.monotonic()
-            # Diagnostic adapter: inspect dimensions only. Pixels are never saved.
-            _ = (frame.width, frame.height)
+            if self.captions.wants_frame(position / 1000):
+                try:
+                    jpeg = await asyncio.to_thread(encode_frame, frame, position / 1000)
+                    if key == self.captions.key and self.valid():
+                        self.captions.offer(jpeg, position / 1000)
+                except Exception:
+                    if key == self.captions.key:
+                        self.captions.status, self.captions.error = "error", "frame_unavailable"
             self.processed = position
             self.processing_ms = (time.monotonic() - start) * 1000
             del frame
@@ -236,6 +261,13 @@ class Receiver:
                     if response.status != 200 or not result.get("accepted"):
                         continue
                 if self.valid():
+                    caption = self.captions.packet()
+                    async with self.http.post(
+                        f"{BASE}/api/internal/sessions/{self.session['id']}/captions",
+                        json=caption,
+                    ) as response:
+                        await response.read()
+                if self.valid():
                     await self.room.local_participant.publish_data(
                         json.dumps(packet).encode(),
                         reliable=True,
@@ -245,10 +277,13 @@ class Receiver:
                 pass
 
     async def close(self):
-        for task in (self.subscriber, self.reader, self.consumer, self.reporter):
+        self.closed = True
+        self.captions.close()
+        tasks = (self.subscriber, self.reader, self.consumer, self.reporter, self.caption_runner)
+        for task in tasks:
             if task:
                 task.cancel()
-        for task in (self.subscriber, self.reader, self.consumer, self.reporter):
+        for task in tasks:
             if task:
                 with contextlib.suppress(asyncio.CancelledError, Exception):
                     await task
@@ -269,8 +304,9 @@ async def main():
     jobs = {}
     headers = {"Authorization": f"Bearer {KEY}", "X-Worker-Instance": INSTANCE}
     timeout = aiohttp.ClientTimeout(total=3)
-    print("FightLens diagnostic receiver running", flush=True)
-    async with aiohttp.ClientSession(headers=headers, timeout=timeout) as http:
+    print("FightLens receiver running (optional Cosmos captions)", flush=True)
+    async with aiohttp.ClientSession(headers=headers, timeout=timeout) as http, aiohttp.ClientSession() as cosmos_http:
+        cosmos = LiveCosmos(cosmos_http)
         try:
             while not stopped.is_set():
                 try:
@@ -290,14 +326,10 @@ async def main():
                             await job.close()
                             del jobs[session_id]
                         else:
-                            if session["segmentId"] != job.session["segmentId"]:
-                                job.seq = 0
-                                job.reset_metrics()
-                            job.session.update(session)
-                            job.lease = time.monotonic()
+                            job.control(session)
                     for session_id, session in current.items():
                         if session_id not in jobs:
-                            job = Receiver(session, http)
+                            job = Receiver(session, http, cosmos)
                             try:
                                 await job.start()
                                 jobs[session_id] = job

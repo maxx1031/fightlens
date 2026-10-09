@@ -40,6 +40,75 @@ export const diagnosticSchema = z.object({
   }),
 });
 export type Diagnostic = z.infer<typeof diagnosticSchema>;
+export const captionSettingsSchema = z
+  .object({
+    A: z.string().trim().min(2).max(160),
+    B: z.string().trim().min(2).max(160),
+  })
+  .refine((value) => value.A.toLowerCase() !== value.B.toLowerCase(), {
+    message: "Fighters need distinct appearance descriptions.",
+  });
+export type CaptionFighters = z.infer<typeof captionSettingsSchema>;
+
+export const captionUpdateSchema = z
+  .object({
+    schema_version: z.literal("fightlens.caption.v1"),
+    session_id: z.string().uuid(),
+    source_generation: z.number().int().positive(),
+    worker_generation: z.number().int().positive(),
+    segment_id: z.string().uuid(),
+    analysis_revision: z.number().int().nonnegative(),
+    seq: z.number().int().positive(),
+    status: z.enum([
+      "not_configured",
+      "awaiting_identity",
+      "buffering",
+      "reviewing",
+      "ready",
+      "error",
+      "paused",
+    ]),
+    skipped_windows: z.number().int().nonnegative(),
+    error_code: z
+      .enum(["endpoint_unavailable", "invalid_response", "frame_unavailable"])
+      .nullable(),
+    caption: z
+      .object({
+        id: z.string().min(1).max(200),
+        t0_s: z.number().finite().nonnegative(),
+        t1_s: z.number().finite().positive(),
+        text: z.string().trim().min(1).max(800),
+        model: z.string().min(1).max(200),
+        latency_ms: z.number().finite().nonnegative(),
+        ready_at: z.string().datetime(),
+        frames: z.number().int().min(2).max(36),
+      })
+      .refine((caption) => caption.t1_s > caption.t0_s)
+      .nullable(),
+  })
+  .superRefine((update, ctx) => {
+    if (update.status === "ready" && !update.caption)
+      ctx.addIssue({
+        code: "custom",
+        message: "Ready captions require a result.",
+      });
+    if ((update.status === "error") !== (update.error_code !== null))
+      ctx.addIssue({
+        code: "custom",
+        message: "Error state requires an error code.",
+      });
+    if (
+      ["paused", "not_configured", "awaiting_identity"].includes(
+        update.status,
+      ) &&
+      update.caption
+    )
+      ctx.addIssue({
+        code: "custom",
+        message: "Inactive captions must be cleared.",
+      });
+  });
+export type CaptionUpdate = z.infer<typeof captionUpdateSchema>;
 export interface LiveSnapshot {
   id: string;
   revision: number;
@@ -52,6 +121,9 @@ export interface LiveSnapshot {
   workerGeneration: number;
   workerAvailable: boolean;
   paused: boolean;
+  analysisRevision: number;
+  captionFighters: CaptionFighters | null;
+  caption: CaptionUpdate | null;
   cleanupPending: boolean;
   latest: Diagnostic | null;
   updatedAt: number | null;
