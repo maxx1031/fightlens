@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --radius: 0.25rem;
+    --font-arcade-body: "Avenir Next", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
+    --font-arcade-display: "Avenir Next Condensed", Impact, "Arial Narrow", sans-serif;
+    --font-arcade-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .light {
+    color-scheme: light;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --radius: 0.25rem;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-arcade-body);
+  }
+}
+
+/* Arcade presentation; semantic colors stay in the existing palette above. */
+.arcade-app,
+.fight-replay {
+  --arcade-texture: linear-gradient(125deg, hsl(var(--muted) / 0.3), transparent 45%),
+    repeating-linear-gradient(0deg, transparent, transparent 3px, hsl(var(--foreground) / 0.018) 4px);
+}
+.arcade-app {
+  background-image: var(--arcade-texture);
+}
+.arcade-header > div {
+  min-height: 94px;
+  height: auto;
+  padding-block: 20px;
+}
+.arcade-brand {
+  font-family: var(--font-arcade-display);
+  font-size: 30px;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+.arcade-button {
+  font-family: var(--font-arcade-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.arcade-button:hover:not(:disabled) {
+  outline: 1px solid hsl(var(--ring));
+  outline-offset: -1px;
+}
+.arcade-badge {
+  font-family: var(--font-arcade-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.arcade-panel {
+  border-radius: 0;
+  border-top-width: 3px;
+  box-shadow: 6px 6px 0 hsl(var(--muted));
+}
+.arcade-panel .arcade-panel-title {
+  font-family: var(--font-arcade-display);
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.arcade-app :is(input, select, video) {
+  border-radius: 0;
+}
+.arcade-app dt,
+.arcade-app .tabular-nums {
+  font-family: var(--font-arcade-mono);
+}
+.arcade-app dt {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+@media (max-width: 640px) {
+  .arcade-header > div {
+    min-height: 78px;
+    padding-block: 16px;
+  }
+  .arcade-brand {
+    font-size: 26px;
+  }
+  .arcade-panel {
+    box-shadow: 4px 4px 0 hsl(var(--muted));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
