@@ -6,6 +6,17 @@ FightLens is a real-time MMA viewing agent being built to recognize fight action
 
 Built for the Real-Time Video Agents Hack — NYC, October 9, 2026.
 
+**Status: live YOLO Pose video and rule engagement implemented.** The Next.js application uses React, TypeScript, shadcn/ui, Recharts, and LiveKit. A desktop or paired phone publishes camera video to Python; YOLO Pose + ByteTrack produces a second WebRTC track with boxes, skeletons, and A/B labels. The live engagement curve shows a causal rule signal, with unknown/paused gaps. Confirmed strike verification and calibrated numeric momentum remain planned. Optional exchange direction judgments are described below. See [local YOLO acceptance and measurements](docs/LIVE_YOLO.md).
+
+For the live MVP, run `pnpm install --frozen-lockfile`, `pnpm live:setup`, and `pnpm live:dev`, then open `http://localhost:4173`. See [live setup and deployment boundaries](docs/LIVE_SETUP.md) for prerequisites and phone access. [The web MVP guide](docs/WEB_MVP.md) covers the separate Demo/local-file mode. All Demo curve values are simulated. The earlier Chrome prototype remains in [extension/](extension/README.md) for reference.
+
+The main app defaults to dark mode. Open `/replay` (or choose **Review 3D impact mirrors** on the home page) to review PR #6’s hit flashes, block shields, and region filtering alongside the recorded clip. These contacts and market quotes are scripted fixtures. Live session mirrors use the real engagement signal for a blue torso glow; confirmed contact events are not yet connected.
+
+Optional [Cosmos captions](docs/COSMOS_CAPTIONS.md) review short in-memory camera windows and display commentary below the received video, with its reviewed interval. They do not update contact effects or momentum. For a labeled fake-endpoint review after `pnpm build`, run `pnpm live:demo`; see [combined local verification](docs/COSMOS_CAPTION_VERIFICATION.md).
+
+Optional [exchange advantage judgments](docs/LIVE_JUDGMENTS.md) use `cloudflare/clef-flash` through OpenRouter Decisions. The live stepped curve shows A / balanced / B direction, with insufficient-evidence gaps and delayed-result timing. This is a categorical assessment of an exchange; calibrated numeric momentum and win probabilities remain unimplemented in the live viewer.
+
+
 ## Why FightLens
 
 During a fast exchange, a viewer has only a moment to decide: did that punch land, was it blocked, and who now has the advantage?
@@ -14,6 +25,7 @@ FightLens brings those questions into one viewing experience: the fight, the det
 
 ## The demo we are building
 
+The web MVP includes live YOLO tracking overlays and a rule engagement curve, plus a separate recorded replay viewer with scripted contact heatmaps and market quotes. Confirmed strike analysis and live win probabilities remain planned.
 The three-minute hackathon demo follows one visible change in the fight:
 
 1. **Watch.** Feed in MMA footage and track both fighters with identity and pose overlays.
@@ -89,7 +101,7 @@ The longer-term opportunity is a reusable analysis layer for combat sports. An a
 
 ## Current repository status
 
-This checkout contains the project design, module interface contract, fictional sample data, earlier scripted visual assets, and [YOLO tracking and exchange-analysis scripts](yolo_branch/README.md). Those scripts feed the [arcade replay demo](examples/arcade/README.md), which plays recorded footage with precomputed motion signals. [Cosmos per-second scene understanding](#cosmos-per-second-video-understanding-smoke-test) and [Luna Decisions win probabilities](#openrouter-per-second-win-probability-demo) exist as smoke-test scripts. The synchronized win-probability curves, YOLO video, and commentary interface, live inference, VAST integration, and computer/phone camera capture remain planned. The product experience above describes the target demo; end-to-end validation remains outstanding.
+This checkout contains the project design, module interface contract, fictional sample data, earlier scripted visual assets, and [YOLO tracking and exchange-analysis scripts](yolo_branch/README.md). Those scripts feed the [arcade replay demo](examples/arcade/README.md), which plays recorded footage with precomputed motion signals. [Cosmos per-second scene understanding](#cosmos-per-second-video-understanding-smoke-test) and [Luna Decisions win probabilities](#openrouter-per-second-win-probability-demo) exist as smoke-test scripts. The Next.js camera transport and Python receiver include an optional live Cosmos caption path. The synchronized win-probability curves, live YOLO inference, and VAST integration remain planned; physical-phone camera acceptance remains outstanding. The product experience above describes the target demo; end-to-end validation remains outstanding.
 
 ### First engineering milestone
 
@@ -224,6 +236,19 @@ The single deduplicated ledger the viewer renders. Rewritten as a whole file on 
 - `status`: `pending` (candidate without verdict), `accepted`, `withdrawn` (later evidence or `not_strike`). Withdrawn events stay in the list.
 - `revision` increases every time an event changes. The frontend replaces events by `event_id`.
 - Heatmap rule: count an event once for the defender's `contact_zone` only when `status == "accepted"` and `outcome == "landed"`. `blocked` is counted separately. The frontend computes totals from `events`; there is no separate totals field.
+
+See [the live camera and WebRTC specification](docs/LIVE_CAPTURE_SPEC.md) for the draft capture, pairing, media transport, Python receiver, result timing, and desktop/mobile acceptance requirements.
+
+## Planned tools
+
+| Tool | Proposed role | Status |
+| --- | --- | --- |
+| Ultralytics YOLO Pose + ByteTrack / BoT-SORT | Fighter tracking, pose estimation, and candidate generation | Planned |
+| NVIDIA Cosmos video-understanding endpoint | Review short candidate clips | Planned; event endpoint and model version to confirm |
+| VAST | Store video evidence and event metadata | Planned; access to confirm |
+| Weights & Biases / Weave | Record experiments, model calls, and latency | Planned; access to confirm |
+
+These entries describe intended integrations, not completed integrations or confirmed sponsor eligibility.
 
 ## Scope and evidence
 
