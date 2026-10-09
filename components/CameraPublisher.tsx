@@ -36,10 +36,16 @@ export function CameraPublisher({
   id,
   snapshot,
   refresh,
+  showPreview = true,
+  onStarted,
+  onSetup,
 }: {
   id: string;
   snapshot: LiveSnapshot;
   refresh: () => void;
+  showPreview?: boolean;
+  onStarted: () => void;
+  onSetup: () => void;
 }) {
   const preview = useRef<HTMLVideoElement>(null);
   const track = useRef<LocalVideoTrack | null>(null);
@@ -68,11 +74,28 @@ export function CameraPublisher({
   }
   useEffect(() => {
     mounted.current = true;
+    function abandon() {
+      const capturing = !!track.current || !!room.current;
+      release();
+      if (capturing) {
+        navigator.sendBeacon(
+          `/api/sessions/${id}/stop`,
+          new Blob([JSON.stringify({ requestId: crypto.randomUUID() })], {
+            type: "application/json",
+          }),
+        );
+      }
+    }
+    window.addEventListener("pagehide", abandon);
     return () => {
       mounted.current = false;
+      window.removeEventListener("pagehide", abandon);
+      const capturing = !!track.current || !!room.current;
       release();
+      if (capturing)
+        void liveRequest(`/api/sessions/${id}/stop`, {}).catch(() => {});
     };
-  }, []);
+  }, [id]);
   useEffect(() => {
     if (snapshot.state === "ended") {
       release();
@@ -94,6 +117,15 @@ export function CameraPublisher({
     window.addEventListener("orientationchange", rotated);
     return () => window.removeEventListener("orientationchange", rotated);
   }, [id, snapshot.state, refresh]);
+
+  useEffect(() => {
+    const element = preview.current;
+    const media = track.current?.mediaStreamTrack;
+    if (showPreview && enabled && element && media?.readyState === "live") {
+      element.srcObject = new MediaStream([media]);
+      void element.play().catch(() => setError("Tap the preview to play."));
+    }
+  }, [showPreview, enabled]);
 
   async function acquire(selected = device, selectedFacing = facing) {
     if (!navigator.mediaDevices?.getUserMedia)
@@ -227,6 +259,7 @@ export function CameraPublisher({
       setPublishing(true);
       setStatus("Publishing");
       refresh();
+      onStarted();
     } catch (error) {
       await connection.disconnect();
       setError((error as Error).message);
@@ -253,6 +286,40 @@ export function CameraPublisher({
     }
   }
   const ended = snapshot.state === "ended";
+  if (!showPreview)
+    return (
+      <div
+        className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3"
+        aria-label="Camera publishing controls"
+      >
+        <span className="text-xs text-muted-foreground" role="status">
+          {status}
+        </span>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            className="h-11"
+            onClick={onSetup}
+            disabled={busy || ended}
+          >
+            {enabled ? "Camera settings" : "Set up camera"}
+          </Button>
+          <Button
+            variant="outline"
+            className="h-11"
+            onClick={() => void stop()}
+            disabled={busy || ended || !enabled}
+          >
+            Stop live
+          </Button>
+        </div>
+        {error && (
+          <p role="alert" className="w-full text-sm text-destructive">
+            {error}
+          </p>
+        )}
+      </div>
+    );
   return (
     <Card className="min-w-0" aria-label="Camera publisher">
       <CardHeader className="flex-row items-center justify-between space-y-0 p-4">
@@ -269,8 +336,14 @@ export function CameraPublisher({
           playsInline
           className="aspect-video w-full rounded-md bg-muted object-contain"
           aria-label="Local camera preview"
+          onClick={() => void preview.current?.play()}
         />
         <div className="flex flex-wrap gap-2">
+          {publishing && (
+            <Button className="h-11" onClick={onStarted}>
+              Return to live session
+            </Button>
+          )}
           <Button
             className="h-11"
             variant="outline"
@@ -343,8 +416,9 @@ export function CameraPublisher({
         </p>
         <p className="text-xs text-muted-foreground">
           Preview is local. Start live sends video to the media and analysis
-          services. When captions are enabled, short sampled windows are sent to
-          Cosmos. This app keeps them only in memory and saves no recording.
+          services. When optional model analysis is enabled, short sampled
+          windows are sent to the configured Cosmos or OpenRouter service. This
+          app keeps them only in memory and saves no recording.
         </p>
         {error && (
           <p className="text-sm text-destructive" role="alert">

@@ -76,7 +76,7 @@ export async function POST(request: NextRequest, context: Context) {
         {
           id: session.id,
           viewUrl: `/sessions/${session.id}`,
-          publishUrl: `/sessions/${session.id}/publish`,
+          publishUrl: `/sessions/${session.id}/setup`,
         },
         201,
       );
@@ -133,6 +133,7 @@ export async function POST(request: NextRequest, context: Context) {
       if (session.state !== "ended") session.revision += 1;
       session.state = "ended";
       session.caption = null;
+      session.judgment = null;
       session.endedAt ??= Date.now();
       session.cleanupPending = true;
       await cleanup(session);
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest, context: Context) {
       });
       const base = appOrigin(request);
       return response({
-        url: `${base}/sessions/${session.id}/publish#invite=${invitation.secret}`,
+        url: `${base}/sessions/${session.id}/setup#invite=${invitation.secret}`,
         expiresAt: invitation.expires,
       });
     }
@@ -172,6 +173,16 @@ export async function POST(request: NextRequest, context: Context) {
         .object({ mode: z.enum(["publisher", "viewer"]) })
         .parse(data);
       if (mode === "publisher") {
+        if (
+          [...registry.sessions.values()].some(
+            (other) => other.id !== session.id && other.state === "active",
+          )
+        )
+          throw new LiveError(
+            "analysis_capacity",
+            "The local YOLO demo supports one live session. End the current session first.",
+            409,
+          );
         if (Date.now() - registry.workerSeen >= 5000)
           throw new LiveError(
             "worker_unavailable",
@@ -211,9 +222,37 @@ export async function POST(request: NextRequest, context: Context) {
         );
       const { paused } = z.object({ paused: z.boolean() }).parse(data);
       remember(session, role, action, requestId, () => {
+        if (session.paused !== paused) {
+          const last = session.history.at(-1);
+          const position = Math.max(last?.t_ms || 0, session.latest?.timing.received_position_ms || 0,
+            ...(session.judgmentHistory ?? []).map((entry) => entry.available_position_ms)) + 0.001;
+          session.judgmentHistory = [...(session.judgmentHistory ?? []), {
+            id: randomUUID(), episode_id: randomUUID(), revision: 0, kind: "gap" as const,
+            t0_s: position / 1000, t1_s: position / 1000, available_position_ms: position,
+            ready_at: new Date().toISOString(), accepted_at: new Date().toISOString(),
+            model: "application", prompt_version: "exchange-direction.v1" as const, frames: 0, latency_ms: 0,
+            direction: null, evidence: null, probabilities: null, confidence: null, gap_reason: "paused" as const,
+          }].slice(-120);
+          session.analysisRevision += 1;
+          session.caption = null;
+          session.judgment = null;
+          session.pose = null;
+          session.history.push({
+            frame_id: Math.max(
+              last?.frame_id || 0,
+              session.latest?.frame_ref.output_frame_id || 0,
+            ),
+            t_ms:
+              Math.max(
+                last?.t_ms || 0,
+                session.latest?.timing.received_position_ms || 0,
+              ) + 0.001,
+            engaged: null,
+            distance: null,
+          });
+          session.history = session.history.slice(-600);
+        }
         session.paused = paused;
-        session.analysisRevision += 1;
-        session.caption = null;
         session.revision += 1;
         return true;
       });
@@ -229,8 +268,10 @@ export async function POST(request: NextRequest, context: Context) {
       const fighters = captionSettingsSchema.parse(data);
       remember(session, role, action, requestId, () => {
         session.captionFighters = fighters;
-        session.analysisRevision += 1;
+        session.captionRevision += 1;
+        session.judgmentHistory = [];
         session.caption = null;
+        session.judgment = null;
         session.revision += 1;
         return true;
       });
@@ -241,7 +282,11 @@ export async function POST(request: NextRequest, context: Context) {
         session.segmentId = randomUUID();
         session.latest = null;
         session.caption = null;
+        session.judgment = null;
         session.updatedAt = null;
+        session.pose = null;
+        session.history = [];
+        session.judgmentHistory = [];
         session.revision += 1;
         return true;
       });

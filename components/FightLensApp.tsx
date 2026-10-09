@@ -53,10 +53,10 @@ export function FightLensApp() {
   }
 
   return (
-    <div className="min-h-svh pb-[max(24px,env(safe-area-inset-bottom))]">
-      <header className="border-b">
+    <div className="arcade-app min-h-svh pb-[max(24px,env(safe-area-inset-bottom))]">
+      <header className="arcade-header border-b">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4 sm:px-6">
-          <h1 className="text-sm font-semibold">FightLens</h1>
+          <h1 className="arcade-brand">FightLens</h1>
           <Badge variant="outline">Demo</Badge>
         </div>
       </header>

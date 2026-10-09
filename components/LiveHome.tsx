@@ -16,7 +16,7 @@ export function LiveHome() {
     try {
       await liveRequest("/api/sessions"); // Establish device identity for command retries.
       const session = await liveRequest<{ id: string }>("/api/sessions", {});
-      router.push(`/sessions/${session.id}${phone ? "?phone=1" : "/publish"}`);
+      router.push(`/sessions/${session.id}${phone ? "?phone=1" : "/setup"}`);
     } catch (error) {
       setError((error as Error).message);
       setBusy(false);
@@ -29,8 +29,8 @@ export function LiveHome() {
       </CardHeader>
       <CardContent className="space-y-4 p-4 pt-0">
         <p className="text-sm text-muted-foreground">
-          Stream your camera to the viewer and diagnostic receiver. Video leaves
-          your device; no recording is saved.
+          Stream your camera for live YOLO pose analysis. Video reaches the
+          media and analysis services; no recording is saved.
         </p>
         <div className="flex flex-wrap gap-2">
           <Button

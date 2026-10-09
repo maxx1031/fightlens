@@ -10,7 +10,7 @@ import {
 
 const messages = {
   not_configured: "Captions will start when Cosmos is connected.",
-  awaiting_identity: "Confirm how to identify A and B to start captions.",
+  awaiting_identity: "Confirm how to identify A and B to start configured analysis.",
   buffering: "Collecting the next short video window…",
   reviewing: "Cosmos is reviewing a recent exchange…",
   ready: "Recent exchange reviewed",
@@ -121,8 +121,8 @@ export function CosmosCaption({
             key={JSON.stringify(snapshot.captionFighters)}
           >
             <p className="text-xs text-muted-foreground">
-              Confirm visible appearance, such as trunks or gloves. A/B stay
-              with the fighter as they move.
+              These descriptions are shared by Cosmos and exchange judgments. Match the A/B labels in the received video using visible appearance,
+              such as trunks or gloves. Reconfirm if camera changes swap the labels.
             </p>
             {(["A", "B"] as const).map((fighter) => (
               <label className="block space-y-1 text-xs" key={fighter}>

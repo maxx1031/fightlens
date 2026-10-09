@@ -13,7 +13,7 @@ from cosmos_branch.fake_cosmos import serve
 
 def session(**changes):
     return {"id": str(uuid.uuid4()), "sourceGeneration": 1, "workerGeneration": 1,
-            "segmentId": str(uuid.uuid4()), "analysisRevision": 0, "paused": False,
+            "segmentId": str(uuid.uuid4()), "analysisRevision": 0, "captionRevision": 0, "paused": False,
             "captionFighters": {"A": "red trunks", "B": "blue trunks"}, **changes}
 
 
@@ -193,3 +193,52 @@ def test_frame_buffer_downsizes_and_encodes_real_rtc_pixels():
     with Image.open(io.BytesIO(encoded)) as image:
         assert image.size == (640, 384)
     assert len(encoded) < 100_000
+
+
+def test_identity_edit_cancels_caption_without_resetting_yolo_queue():
+    async def check():
+        from receiver import Receiver
+        state = session(revision=1)
+        receiver = Receiver(state, None, None, HeldClient())
+        receiver.pose_seq = 12
+        receiver.frames.put_nowait(("pending-yolo-frame",))
+        receiver.caption_frames.put_nowait(("pending-caption-frame",))
+        runner = asyncio.create_task(receiver.captions.run())
+        try:
+            fill(receiver.captions, 0, 3)
+            await asyncio.wait_for(receiver.captions.client.started.wait(), 1)
+            receiver.control({**state, "revision": 2, "captionRevision": 1,
+                              "captionFighters": {"A": "black trunks", "B": "white trunks"}})
+            receiver.captions.client.release.set()
+            await asyncio.sleep(0.01)
+            assert receiver.pose_seq == 12 and receiver.frames.qsize() == 1
+            assert receiver.caption_frames.empty() and receiver.captions.caption is None
+            assert receiver.key()[-1] == 0
+            assert receiver.captions.packet()["caption_revision"] == 1
+            fill(receiver.captions, 6, 9)
+            await asyncio.sleep(0.01)
+            assert receiver.captions.caption["t0_s"] == 6
+        finally:
+            await stop(receiver.captions, runner)
+            await receiver.close()
+    asyncio.run(check())
+
+
+def test_caption_sampling_runs_while_yolo_frame_is_waiting():
+    async def check():
+        from receiver import Receiver
+        from livekit import rtc
+        receiver = Receiver(session(), None, None, HeldClient())
+        receiver.frames.put_nowait(("held-yolo-frame",))
+        receiver.caption_sampler = asyncio.create_task(receiver.sample_captions())
+        frame = rtc.VideoFrame(640, 360, rtc.VideoBufferType.RGB24, bytes([40, 70, 90]) * (640 * 360))
+        try:
+            receiver.caption_frames.put_nowait((frame, 1, receiver.captions.key))
+            async with asyncio.timeout(2):
+                while not receiver.captions.samples:
+                    await asyncio.sleep(0.01)
+            assert receiver.frames.qsize() == 1
+            assert receiver.captions.samples[0].t == 1
+        finally:
+            await receiver.close()
+    asyncio.run(check())

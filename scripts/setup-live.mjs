@@ -96,6 +96,18 @@ if (!existsSync(binary)) {
 execFileSync("uv", ["sync", "--project", "worker", "--python", "3.12"], {
   stdio: "inherit",
 });
+execFileSync(
+  "uv",
+  [
+    "run",
+    "--project",
+    "worker",
+    "--frozen",
+    "python",
+    "worker/prepare_model.py",
+  ],
+  { stdio: "inherit" },
+);
 console.log(
   "Local LiveKit and Python receiver ready. Run pnpm live:dev. Credentials stay in ignored .env.local.",
 );

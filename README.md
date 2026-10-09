@@ -6,14 +6,16 @@ FightLens is a real-time MMA viewing agent being built to recognize fight action
 
 Built for the Real-Time Video Agents Hack — NYC, October 9, 2026.
 
-**Status: live camera transport and diagnostic receiver implemented; video analysis remains planned.** The Next.js application uses React, TypeScript, shadcn/ui, Recharts, and LiveKit. A desktop or paired phone publishes a camera track to the viewer and Python receiver. The live UI reports actual receiver frames and explicitly leaves numeric momentum unavailable. There is no connected strike classifier or measured inference performance result yet.
+**Status: live YOLO Pose video and rule engagement implemented.** The Next.js application uses React, TypeScript, shadcn/ui, Recharts, and LiveKit. A desktop or paired phone publishes camera video to Python; YOLO Pose + ByteTrack produces a second WebRTC track with boxes, skeletons, and A/B labels. The live engagement curve shows a causal rule signal, with unknown/paused gaps. Confirmed strike verification and calibrated numeric momentum remain planned. Optional exchange direction judgments are described below. See [local YOLO acceptance and measurements](docs/LIVE_YOLO.md).
 
 For the live MVP, run `pnpm install --frozen-lockfile`, `pnpm live:setup`, and `pnpm live:dev`, then open `http://localhost:4173`. See [live setup and deployment boundaries](docs/LIVE_SETUP.md) for prerequisites and phone access. [The web MVP guide](docs/WEB_MVP.md) covers the separate Demo/local-file mode. All Demo curve values are simulated. The earlier Chrome prototype remains in [extension/](extension/README.md) for reference.
-## Local web application
 
-The Next.js application uses React, TypeScript, shadcn/ui, Recharts, and LiveKit. A desktop or paired phone publishes a camera track to the viewer and Python receiver. The live UI reports receiver frames and leaves numeric momentum unavailable. The separate Demo/local-file mode uses a simulated momentum curve. Optional [Cosmos captions](docs/COSMOS_CAPTIONS.md) reuse the exchange-review prompt/parser on short live frame windows and display the returned note below the video. Real-provider compatibility and caption accuracy remain unverified.
+The main app defaults to dark mode. Open `/replay` (or choose **Review 3D impact mirrors** on the home page) to review PR #6’s hit flashes, block shields, and region filtering alongside the recorded clip. These contacts and market quotes are scripted fixtures. Live session mirrors use the real engagement signal for a blue torso glow; confirmed contact events are not yet connected.
 
-For local review, run `pnpm install --frozen-lockfile`, `pnpm live:setup`, and `pnpm live:dev`, then open `http://localhost:4173`. See [live setup and deployment boundaries](docs/LIVE_SETUP.md), [the web MVP guide](docs/WEB_MVP.md), and [local transport verification](docs/LIVE_VERIFICATION.md). Physical-phone and TURN acceptance remain outstanding. The earlier Chrome prototype remains in [extension/](extension/README.md).
+Optional [Cosmos captions](docs/COSMOS_CAPTIONS.md) review short in-memory camera windows and display commentary below the received video, with its reviewed interval. They do not update contact effects or momentum. For a labeled fake-endpoint review after `pnpm build`, run `pnpm live:demo`; see [combined local verification](docs/COSMOS_CAPTION_VERIFICATION.md).
+
+Optional [exchange advantage judgments](docs/LIVE_JUDGMENTS.md) use `cloudflare/clef-flash` through OpenRouter Decisions. The live stepped curve shows A / balanced / B direction, with insufficient-evidence gaps and delayed-result timing. This is a categorical assessment of an exchange; calibrated numeric momentum and win probabilities remain unimplemented in the live viewer.
+
 
 ## Why FightLens
 
@@ -23,7 +25,7 @@ FightLens brings those questions into one viewing experience: the fight, the det
 
 ## The demo we are building
 
-The web MVP implements the viewing interaction with a simulated momentum curve using shadcn/ui's Neutral theme. Fighter tracking overlays, received-strike heatmaps, and actual evidence replay remain planned.
+The web MVP includes live YOLO tracking overlays and a rule engagement curve, plus a separate recorded replay viewer with scripted contact heatmaps and market quotes. Confirmed strike analysis and live win probabilities remain planned.
 The three-minute hackathon demo follows one visible change in the fight:
 
 1. **Watch.** Feed in MMA footage and track both fighters with identity and pose overlays.

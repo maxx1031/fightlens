@@ -53,3 +53,52 @@ dedicated service settings stay outside Git.
 See [the integration contract and configuration](COSMOS_CAPTIONS.md). Remaining
 acceptance includes the real endpoint's `video_frames` behavior, accuracy and
 uncertainty on fight footage, real throughput/latency, and cross-device timing.
+
+## Combined YOLO and caption pipeline — local acceptance
+
+October 9, 2026, after merging PR #7 into the local `codex/english-prd` checkout.
+The active camera stream now feeds two independent consumers: YOLO inference
+with annotated WebRTC return video, and bounded JPEG sampling with asynchronous
+Cosmos review. Caption identity edits use `captionRevision`; they do not reset
+YOLO's `analysisRevision`, pose sequence, output track, or engagement history.
+
+Verified against the production build with a file-backed Chromium camera using
+recorded fight footage and the repository fake Cosmos endpoint (one-second
+response delay):
+
+- A caption appeared below the received YOLO video with its actual sampled
+  receiver-time interval and **Fake endpoint · demo** label. Recorded images are
+  real YOLO input; fake captions do not analyze them.
+- Both 1440px desktop and 390px mobile layouts rendered without horizontal
+  overflow. Dark mode remained the default.
+- Editing descriptions cleared the old caption and advanced only the caption
+  revision while the existing YOLO pose sequence and output track continued.
+- Pause cleared commentary; returned video continued decoding. Resume produced
+  a new caption from later footage with the current analysis revision.
+- Changing camera facing changed the segment and cleared old text; the next
+  caption carried the new segment. This checks camera reacquisition using a
+  synthetic device, not switching physical phone lenses.
+- End cleared captions and released the returned video element's `srcObject`.
+- An inspected sample reported YOLO output at 14.9 FPS, a 12-frame caption
+  window, and 1003.4ms fake review duration. This is not a sustained benchmark
+  or real Cosmos latency measurement.
+- No browser errors were recorded. Next.js emitted unused CSS-preload warnings
+  during route prefetching.
+
+Automated validation: production build, TypeScript checking, three replay tests,
+and 72 Python tests covering the live caption/engagement modules, existing
+Cosmos branch, and video-understanding script. Caption API checks on an isolated
+control server additionally verified caption-revision rejection and preservation
+of YOLO pose/history during identity edits. Live API checks passed against the
+combined stack. Local credentials were not changed.
+
+Ignored review screenshots: `output/playwright/pr7-caption-desktop.png` and
+`output/playwright/pr7-caption-mobile.png`.
+
+For local review, run `pnpm build` followed by `pnpm live:demo`, open the camera
+page, confirm fighter descriptions, enable the camera, and select **Start live**.
+The demo launcher overrides provider settings only in child processes and
+starts its own fake endpoint. Normal `pnpm live:start` uses configured Cosmos
+settings; neither `.env.local`, `.env`, nor shell environment had a real Cosmos
+URL or token configured during this acceptance run. Real endpoint compatibility,
+caption accuracy, physical phones, and TURN remain unverified.

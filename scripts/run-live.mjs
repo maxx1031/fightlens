@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 process.chdir(resolve(dirname(fileURLToPath(import.meta.url)), ".."));
 if (!existsSync(".env.local") || !existsSync("output/livekit/livekit-server"))
   throw new Error("Run pnpm live:setup first.");
+await import("./prepare-replay.mjs");
 process.loadEnvFile(".env.local");
 const children = [];
 let stopping = false;
@@ -35,6 +36,19 @@ function start(command, args, label) {
 }
 process.on("SIGINT", () => stop());
 process.on("SIGTERM", () => stop());
+if (process.argv.includes("--fake-cosmos")) {
+  // Explicit demo mode overrides provider settings only in these child processes.
+  Object.assign(process.env, {
+    COSMOS3_REASON_URL: "http://127.0.0.1:9001",
+    COSMOS3_REASON_MODEL: "",
+    COSMOS_MODEL: "",
+    GPU_BEARER_TOKEN: "",
+    COSMOS_API_KEY: "",
+  });
+  console.log("Cosmos captions: fake endpoint demo; no model inference.");
+  start("uv", ["run", "--project", "worker", "--frozen", "python",
+    "cosmos_branch/fake_cosmos.py", "--port", "9001", "--delay", "1", "--think"], "Fake Cosmos");
+}
 start(
   "output/livekit/livekit-server",
   ["--config", "output/livekit/local.yaml"],

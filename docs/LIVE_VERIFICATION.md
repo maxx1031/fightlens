@@ -1,6 +1,6 @@
 # Local live MVP verification
 
-October 9, 2026. This is transport/diagnostic evidence, not model validation or physical-phone acceptance.
+October 9, 2026. This records the earlier transport/diagnostic milestone, before YOLO integration. Current pose/video-return measurements are in [LIVE_YOLO.md](LIVE_YOLO.md). This baseline is not model validation or physical-phone acceptance.
 
 ## Environment
 
@@ -51,3 +51,32 @@ Ignored local artifacts: `output/playwright/desktop-receive-samples.json`, deskt
 Physical iOS Safari and Android Chrome, denied/occupied real camera permissions, screen locking/backgrounding, cellular-to-desktop media, forced TURN relay, cross-device clock mapping, and hosting-specific cached-token revocation remain unverified. The local server configuration does not expose media to phones. Use the HTTPS/WSS/network setup in [LIVE_SETUP.md](LIVE_SETUP.md) before those tests.
 
 Tracking, strike/contact verification, Jev, calibrated numeric momentum, model latency/accuracy, and evidence replay are delivery C or later. No analysis model or full-session recording was added.
+
+## Camera setup and live-view separation
+
+October 9, 2026. The camera preview now appears only on
+`/sessions/:id/setup`, headed **Use live camera or local video**. **Start live**
+opens `/sessions/:id/publish`, which contains one YOLO return video and the
+existing caption/analysis panels. The Original-video toggle is removed. Local
+file playback is available at `/local`.
+
+The session layout owns the publisher across setup/live navigation. Browser
+verification used a file-backed synthetic camera and real local WebRTC/YOLO:
+
+- Setup displayed a framing preview without a received-video element.
+- Live displayed exactly one video element, with no local preview or Original
+  toggle. Returned frames decoded on desktop and at 390px with no overflow.
+- Camera settings and Return to live session kept the same captured media track,
+  source segment, and worker output track. `getUserMedia` was called once during
+  that sequence. Ending the session stopped the captured track.
+- A local MP4 still loaded and played in the local-file view without acquiring a
+  camera.
+- Independent owner/publisher browser contexts tested emitted setup invitations,
+  legacy `/publish#invite` links, fragment removal, setup-to-live navigation,
+  returned video, and camera release after owner stop. Legacy invitation setup
+  redirection runs once rather than redirecting subsequent live navigation.
+- Production build, TypeScript checking, live API checks, and whitespace checks
+  passed. This is browser emulation, not physical-phone acceptance.
+
+Ignored screenshots: `output/playwright/camera-setup-desktop.png`,
+`camera-setup-mobile.png`, `yolo-only-desktop.png`, and `yolo-only-mobile.png`.

@@ -149,7 +149,7 @@ class CaptionPipeline:
 
     def configure(self, session):
         key = (session["id"], session["sourceGeneration"], session["workerGeneration"],
-               session["segmentId"], session["analysisRevision"])
+               session["segmentId"], session["analysisRevision"], session["captionRevision"])
         if self.key == key:
             return
         self.key = key
@@ -215,7 +215,7 @@ class CaptionPipeline:
             if key != self.key or self.closed:
                 continue
             self.caption = {
-                "id": f"{key[3]}:{key[4]}:{samples[0].t:.3f}",
+                "id": f"{key[3]}:{key[4]}:{key[5]}:{samples[0].t:.3f}",
                 "t0_s": samples[0].t, "t1_s": samples[-1].t,
                 "text": note, "model": model, "frames": len(samples),
                 "latency_ms": round((time.monotonic() - started) * 1000, 1),
@@ -225,11 +225,11 @@ class CaptionPipeline:
 
     def packet(self):
         self.seq += 1
-        session, source, worker, segment, revision = self.key
+        session, source, worker, segment, revision, caption_revision = self.key
         return {
             "schema_version": "fightlens.caption.v1", "session_id": session,
             "source_generation": source, "worker_generation": worker, "segment_id": segment,
-            "analysis_revision": revision, "seq": self.seq, "status": self.status,
+            "analysis_revision": revision, "caption_revision": caption_revision, "seq": self.seq, "status": self.status,
             "skipped_windows": self.skipped, "caption": self.caption, "error_code": self.error,
         }
 

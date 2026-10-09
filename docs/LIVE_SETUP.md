@@ -1,6 +1,8 @@
 # Live camera MVP
 
-Implemented from [the live capture specification](LIVE_CAPTURE_SPEC.md): camera preview, one publisher per session, QR pairing, independent received video, LiveKit media, a Python receiver, bounded frame queues, pause/resume, terminal stop, and authorized status snapshots. Optional [Cosmos captions](COSMOS_CAPTIONS.md) review short sampled windows and appear below the video. No full-session recording is saved. Physical phone, relay, and real-model acceptance remain outstanding.
+Implemented from [the live capture specification](LIVE_CAPTURE_SPEC.md): desktop/mobile camera capture, QR pairing, LiveKit media, YOLO Pose with annotated WebRTC return video, causal engagement, and optional [Cosmos commentary](COSMOS_CAPTIONS.md) below the received video. Analysis pause leaves video playing. Short Cosmos frame windows stay in memory; no full-session recording is saved.
+
+See [LIVE_YOLO.md](LIVE_YOLO.md) for local YOLO acceptance and measured latency. Physical-phone, TURN, real Cosmos compatibility, and model accuracy remain separate acceptance work.
 
 ## Local review
 
@@ -22,9 +24,9 @@ The launcher runs three processes and closes them together on Ctrl+C:
 | LiveKit | Signaling 7880, RTC TCP 7881, UDP 50000–50100; local media |
 | Python | RTC subscriber and control-service polling; no public listener |
 
-Choose **Use this camera**, then **Enable camera** for a local framing preview. **Start live** sends the same track through LiveKit. **Received video** requires rendered remote frames; **Backend receiving frames** requires decoded Python frames. These acknowledgments are independent. **Pause analysis** keeps reception active and pauses the diagnostic processing adapter. **Stop live** or **End session** ends the session and releases capture. A new broadcast requires a new session.
+Choose **Use this camera** to open the **Use live camera or local video** setup page, then **Enable camera** for a local framing preview. **Start live** publishes that same track through LiveKit and opens the session page. The live session shows one YOLO return video; the local preview and camera selection remain on the setup page. **Camera settings** returns to setup without restarting capture; **Return to live session** opens the YOLO view again. Local-file playback remains available through **Use local video / demo**. **Received video** requires rendered remote frames; **Backend receiving frames** requires decoded Python frames. These acknowledgments are independent. **Pause analysis** keeps video playing and pauses the configured analysis consumers. **Stop live** or **End session** ends the session and releases capture. A new broadcast requires a new session.
 
-The separate **Explore Demo curve / local video** mode retains the simulated curve and seekable local-file player. It does not analyze the selected video.
+The live **YOLO video** shows returned annotations and the engagement curve is a rule signal from actual pose results. **Pause analysis** passes new unannotated frames through that same track. The separate **Explore Demo curve / local video** mode retains the simulated curve and seekable local-file player; it does not analyze the selected video.
 
 For a production build of the same single-process control service:
 
@@ -67,6 +69,8 @@ On the desktop, choose **Connect phone**, generate the QR, and scan it on the ph
 - Session state is volatile and belongs to one long-lived Next.js process. Restarting it invalidates sessions and reconciles rooms with this installation's prefix. Do not deploy this registry on stateless/multiple server instances. Keep the prefix stable and exclusive to the installation.
 - The SDK queue holds one waiting frame and the application queue holds one, plus any frame currently being inspected. When captions are configured and identities confirmed, a separate bounded in-memory JPEG window buffer is enabled; it is not a seekable replay buffer. Reported drops are application-queue drops; SDK/network drops are not included. Caption windows skipped under overload are reported separately. Worker peak RSS describes the entire daemon, not a per-session allocation.
 - Receiver progress uses a monotonic receiver clock. Capture timestamps, shared frame IDs, viewer alignment, and capture-to-display latency are unavailable. No arrival-time estimate is presented as synchronized latency.
+- The diagnostic SDK queue holds one waiting frame and the application queue holds one, plus any frame currently being inspected. There is no historical pixel buffer. Reported drops are application-queue drops; SDK/network drops are not included. Worker peak RSS describes the entire daemon, not a per-session allocation.
+- Receiver progress uses a monotonic receiver clock. Capture timestamps and physical-camera capture-to-display latency remain unavailable. Returned YOLO frames carry output frame IDs for browser curve alignment; unsupported browsers explicitly display unaligned receiver-relative results.
 - Browser codec negotiation remains enabled. The received viewer codec is reported when RTC statistics expose it. The Python diagnostic codec field remains `null` because this receiver API does not expose an authoritative codec value.
 - Publication uses one video layer, a 2.5 Mbps / 30 FPS encoding ceiling, and a preference to preserve capture resolution. A constrained browser/network may reduce cadence; always use the actual received FPS and resolution when judging analysis suitability.
 - Status becomes stale after two seconds without fresh frames. Worker permissions renew every two seconds and expire after five seconds without control authorization. Republished tracks, worker restarts, camera rotation, and detected timestamp/frame gaps start a new segment.

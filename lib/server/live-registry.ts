@@ -1,3 +1,4 @@
+import type { AcceptedJudgment, JudgmentUpdate } from "@/lib/live/judgments";
 import "server-only";
 import { randomUUID, randomBytes, timingSafeEqual } from "node:crypto";
 import {
@@ -10,6 +11,8 @@ import type {
   CaptionUpdate,
   Diagnostic,
   LiveSnapshot,
+  Pose,
+  EngagementPoint,
 } from "@/lib/live/types";
 
 export class LiveError extends Error {
@@ -44,8 +47,14 @@ export interface Session {
   workerSeen: number;
   paused: boolean;
   analysisRevision: number;
+  captionRevision: number;
   captionFighters: CaptionFighters | null;
   caption: CaptionUpdate | null;
+  judgment: JudgmentUpdate | null;
+  judgmentHistory: AcceptedJudgment[];
+  outputTrackId: string | null;
+  pose: Pose | null;
+  history: EngagementPoint[];
   cleanupPending: boolean;
   latest: Diagnostic | null;
   updatedAt: number | null;
@@ -64,7 +73,7 @@ interface Registry {
 const globalRegistry = globalThis as typeof globalThis & {
   fightlensRegistry?: Registry;
 };
-export const registry = (globalRegistry.fightlensRegistry ??= {
+export const registry: Registry = (globalRegistry.fightlensRegistry ??= {
   sessions: new Map(),
   creations: new Map(),
   initialized: null,
@@ -178,8 +187,14 @@ export function snapshot(
     workerAvailable: Date.now() - registry.workerSeen < 5000,
     paused: session.paused,
     analysisRevision: session.analysisRevision,
+    captionRevision: session.captionRevision,
     captionFighters: session.captionFighters,
     caption: session.caption,
+    judgment: session.judgment ?? null,
+    judgmentHistory: session.judgmentHistory ?? [],
+    outputTrackId: session.outputTrackId,
+    pose: session.pose,
+    history: session.history,
     cleanupPending: session.cleanupPending,
     latest: session.latest,
     updatedAt: session.updatedAt,
@@ -214,8 +229,14 @@ export function createSession(device: string, requestId: string) {
     workerSeen: 0,
     paused: false,
     analysisRevision: 0,
+    captionRevision: 0,
     captionFighters: null,
     caption: null,
+    judgment: null,
+    judgmentHistory: [],
+    outputTrackId: null,
+    pose: null,
+    history: [],
     cleanupPending: false,
     latest: null,
     updatedAt: null,
@@ -262,11 +283,11 @@ export async function issueToken(
   token.addGrant({
     roomJoin: true,
     room: session.room,
-    canPublish: role === "publisher",
+    canPublish: role === "publisher" || role === "worker",
     canSubscribe: role !== "publisher",
     canPublishData: role === "worker",
     canUpdateOwnMetadata: false,
-    ...(role === "publisher"
+    ...(role === "publisher" || role === "worker"
       ? { canPublishSources: [TrackSource.CAMERA] }
       : {}),
   });

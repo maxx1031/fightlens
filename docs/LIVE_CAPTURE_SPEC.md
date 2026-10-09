@@ -4,6 +4,8 @@ Version 0.1 · Draft for review · October 9, 2026
 
 Implementation note: the local capture, pairing, transport, and diagnostic receiver now exist. See [setup](LIVE_SETUP.md) and [verification evidence](LIVE_VERIFICATION.md). Physical-phone/network acceptance and delivery C remain outstanding; this draft remains the design reference.
 
+The pose-only analysis adapter and annotated video return are now implemented; see [LIVE_YOLO.md](LIVE_YOLO.md). Full contact verification, Jev, and numerical momentum remain outstanding.
+
 FightLens will capture a phone or desktop camera, stream the video through WebRTC, and deliver the same published track to the viewing page and a Python analysis worker. The first delivery proves camera capture, media delivery, and result delivery before integrating the MMA models.
 
 This specification extends [the product requirements](PRD.md) for live input. The existing Next.js application provides local file playback and a simulated curve; camera capture, LiveKit, session APIs, and a live receiver are proposed here. The broader analysis and evidence replay requirements remain in the PRD.

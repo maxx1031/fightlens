@@ -12,7 +12,9 @@ loads server-only configuration from `.env.local`, then `.env` as a fallback;
 shell variables take precedence. Without a URL, it reports that captions are
 not configured and continues receiving video.
 
-To use the repository's fake endpoint:
+For a one-command local demo after `pnpm build`, run `pnpm live:demo`. It starts the normal YOLO/video stack plus the repository fake Cosmos endpoint with a one-second delay. Provider settings are overridden only in child processes; environment files are preserved. The UI labels returned captions **Fake endpoint · demo**.
+
+To run the repository's fake endpoint separately:
 
 ```sh
 uv run --project worker --frozen python cosmos_branch/fake_cosmos.py --delay 1 --think
@@ -40,7 +42,7 @@ compatibility and fight-caption quality need separate validation.
 
 ## Processing and limits
 
-- LiveKit reception and diagnostics continue independently of model requests.
+- LiveKit reception, YOLO inference, annotated WebRTC output, and diagnostics continue independently of caption sampling and model requests. A separate one-frame sampling queue feeds JPEG encoding outside the YOLO executor.
 - The receiver samples at `FIGHTLENS_CAPTION_FPS` (default 4, bounded 1–6) into
   fixed `FIGHTLENS_CAPTION_WINDOW_S` buckets (default 3 seconds, bounded 1–6).
   A window is submitted when its bucket has ended; at least two samples are
@@ -75,7 +77,7 @@ The worker posts `fightlens.caption.v1` to
 credential and current `X-Worker-Instance` lease. Packets include:
 
 - `session_id`, `source_generation`, `worker_generation`, `segment_id`,
-  `analysis_revision`, and increasing `seq`.
+  `analysis_revision`, `caption_revision`, and increasing `seq`.
 - `status`: `not_configured`, `awaiting_identity`, `buffering`, `reviewing`,
   `ready`, `error`, or `paused`; `skipped_windows` and a safe `error_code`.
 - `caption`: null or `{id, t0_s, t1_s, text, model, latency_ms, ready_at, frames}`.
@@ -86,8 +88,7 @@ can remain while the next window is reviewing or fails; the UI identifies it as
 earlier footage. It labels stale reception rather than presenting old text as
 current commentary.
 
-Pause/resume and identity changes advance `analysisRevision`, clear buffers and
-the visible result, and cancel in-flight requests. Source/segment/worker changes
+Pause/resume advances `analysisRevision` and invalidates both analyses. Identity edits advance only `captionRevision`, leaving YOLO tracking and engagement history intact. Both operations clear caption buffers and the visible result, and cancel local in-flight requests. Cancelling the local request does not guarantee that the provider stops GPU inference. Source/segment/worker changes
 also clear captions. Both Python and the API reject old-generation results.
 Repeated or lower-sequence packets and regressing result intervals are ignored;
 ended sessions reject updates. Receiver time is not a capture/display clock.
