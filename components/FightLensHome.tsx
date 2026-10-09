@@ -23,10 +23,10 @@ export function FightLensHome() {
       </>
     );
   return (
-    <div className="min-h-svh">
-      <header className="border-b">
+    <div className="arcade-app min-h-svh">
+      <header className="arcade-header border-b">
         <div className="mx-auto flex h-14 max-w-6xl items-center px-4 sm:px-6">
-          <h1 className="text-sm font-semibold">FightLens</h1>
+          <h1 className="arcade-brand">FightLens</h1>
         </div>
       </header>
       <main className="mx-auto max-w-3xl space-y-5 px-4 py-8 sm:px-6">

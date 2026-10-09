@@ -30,7 +30,7 @@ The local server binds to `0.0.0.0`, so a phone on the same network can open `ht
 - The curve automatically follows that video's play, pause, and seek state.
 - Use the native video controls or the curve's play/pause, timeline, and restart controls.
 - Choose **Use demo** to remove the selected video and reset to the demo timeline.
-- Light/dark Neutral theme follows the operating system. Desktop uses two columns; smaller viewports stack the video above the curve. Controls have larger touch targets on mobile.
+- The default presentation uses a dark arcade theme with the existing neutral palette. The replay viewer retains its light/dark toggle; typography, panel shapes, and controls share the same arcade styling. Desktop uses two columns; smaller viewports stack the video above the curve. Controls have larger touch targets on mobile.
 
 The Demo/local-file mode has no event cards, statistics, floating panels, or Chrome APIs. The separate `/replay` route contains scripted contact events and simulated market quotes. Files use browser object URLs and are not uploaded. The curve is still simulated, repeats every 60 seconds on longer videos, and does not describe the actions in the selected footage. A gap at demo time 00:31–00:34 means unable to assess. This is not a calibrated prediction or win probability.
 

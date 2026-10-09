@@ -1,6 +1,6 @@
-/* Layout and interaction styles; global colors inherit shadcn's neutral theme. */
+/* Arcade presentation; colors retain the existing neutral and fighter palette. */
 .fight-replay .viewer-shell {
-  font-family: "Geist Variable", Arial, Helvetica, sans-serif;
+  font-family: var(--font-arcade-body);
   margin: 0;
 }
 .fight-replay button,
@@ -29,12 +29,13 @@
 .fight-replay .viewer-shell {
   min-height: 100vh;
   background: hsl(var(--background));
+  background-image: var(--arcade-texture);
   color: hsl(var(--foreground));
 }
 .fight-replay .site-header {
-  height: 74px;
+  min-height: 94px;
   border-bottom: 1px solid hsl(var(--border));
-  padding: 0 max(24px, calc((100vw - 1320px) / 2));
+  padding: 20px max(24px, calc((100vw - 1320px) / 2));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -44,9 +45,12 @@
   display: flex;
   align-items: center;
   gap: 11px;
-  font-size: 18px;
-  letter-spacing: -0.6px;
-  font-weight: 650;
+  font-family: var(--font-arcade-display);
+  font-size: 30px;
+  font-style: italic;
+  letter-spacing: -1px;
+  font-weight: 900;
+  text-transform: uppercase;
   text-decoration: none;
   color: inherit;
 }
@@ -57,7 +61,7 @@
   color: hsl(var(--background));
   width: 33px;
   height: 33px;
-  border-radius: 9px;
+  border-radius: 0;
 }
 .fight-replay .brand > span:last-child {
   display: flex;
@@ -70,8 +74,10 @@
   margin: 0 17px;
 }
 .fight-replay .brand-description {
-  font-size: 12px;
-  letter-spacing: 0;
+  font-family: var(--font-arcade-mono);
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 1px;
   font-weight: 400;
   color: hsl(var(--muted-foreground));
 }
@@ -112,7 +118,7 @@
   background: hsl(var(--popover));
   color: hsl(var(--popover-foreground));
   padding: 20px;
-  border-radius: var(--radius);
+  border-radius: 0;
   box-shadow: 0 12px 35px #0003;
   font-size: 12px;
   line-height: 1.7;
@@ -147,9 +153,12 @@
   opacity: 0.5;
 }
 .fight-replay .page-heading h1 {
-  font-size: 27px;
-  font-weight: 550;
-  letter-spacing: -1.1px;
+  font-family: var(--font-arcade-display);
+  font-size: 42px;
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -1px;
   margin: 10px 0 7px;
   line-height: 1.25;
 }
@@ -193,7 +202,7 @@
 .fight-replay .fighter-token {
   width: 35px;
   height: 35px;
-  border-radius: 9px;
+  border-radius: 0;
   display: grid;
   place-items: center;
   border: 1px solid currentColor;
@@ -210,9 +219,12 @@
 }
 .fight-replay .fighter-summary strong {
   display: block;
-  font-size: 15px;
-  font-weight: 550;
-  letter-spacing: -0.2px;
+  font-family: var(--font-arcade-display);
+  font-size: 32px;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
 }
 .fight-replay .fighter-summary div > span {
   display: block;
@@ -230,8 +242,11 @@
 }
 .fight-replay .round-summary > strong {
   display: block;
-  font-size: 18px;
-  font-weight: 500;
+  font-family: var(--font-arcade-display);
+  font-size: 54px;
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
   margin-top: 5px;
 }
@@ -260,9 +275,10 @@
   padding: 0;
   gap: 0;
   overflow: hidden;
-  box-shadow: none;
+  box-shadow: 6px 6px 0 hsl(var(--muted));
   background: hsl(var(--card));
-  border-radius: var(--radius);
+  border-top-width: 3px;
+  border-radius: 0;
 }
 .fight-replay .card-topline {
   height: 48px;
@@ -300,7 +316,7 @@
   color: #e2e2e2;
   background: #111b;
   border: 1px solid #ffffff28;
-  border-radius: 5px;
+  border-radius: 0;
   padding: 4px 7px;
   font-size: 9px;
   backdrop-filter: blur(8px);
@@ -318,7 +334,7 @@
   text-shadow: 0 1px 3px #000;
   background: #0006;
   padding: 5px 8px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 .fight-replay .video-bottom-caption > span:last-child {
   color: #bbb;
@@ -346,7 +362,7 @@
   appearance: none;
   width: 100%;
   height: 3px;
-  border-radius: 99px;
+  border-radius: 0;
   background: linear-gradient(
     to right,
     hsl(var(--foreground)) var(--progress),
@@ -421,6 +437,7 @@
   height: 30px;
 }
 .fight-replay .timecode {
+  white-space: nowrap;
   font-size: 10px;
   letter-spacing: 0.3px;
   display: block;
@@ -457,9 +474,12 @@
 }
 .fight-replay .card-heading h2,
 .fight-replay .events-heading h2 {
-  font-size: 13px;
-  font-weight: 550;
-  letter-spacing: -0.15px;
+  font-family: var(--font-arcade-display);
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.4px;
+  text-transform: uppercase;
   margin: 0;
 }
 .fight-replay .section-icon {
@@ -505,7 +525,7 @@
   place-items: center;
   width: 18px;
   height: 18px;
-  border-radius: 4px;
+  border-radius: 0;
   font-size: 9px;
   font-weight: 600;
   border: 1px solid currentColor;
@@ -549,7 +569,7 @@
   color: hsl(var(--muted-foreground));
   font-size: 9px;
   text-align: left;
-  border-radius: 4px;
+  border-radius: 0;
 }
 .fight-replay .body-zone:hover,
 .fight-replay .body-zone.selected {
@@ -561,7 +581,7 @@
 }
 .fight-replay .heat-track {
   height: 3px;
-  border-radius: 2px;
+  border-radius: 0;
   background: hsl(var(--muted));
   flex: 1;
   overflow: hidden;
@@ -570,7 +590,7 @@
   display: block;
   height: 100%;
   background: #dcaa91;
-  border-radius: 2px;
+  border-radius: 0;
 }
 .fight-replay .body-zone strong {
   color: hsl(var(--foreground));
@@ -624,7 +644,7 @@
   display: block;
   width: 37px;
   height: 4px;
-  border-radius: 2px;
+  border-radius: 0;
   background: linear-gradient(to right, #b7bbc4, #e7a386);
 }
 .fight-replay .impact-note {
@@ -650,9 +670,12 @@
   margin: 18px 19px 11px;
 }
 .fight-replay .exchange-title h3 {
-  font-size: 17px;
-  font-weight: 500;
-  letter-spacing: -0.3px;
+  font-family: var(--font-arcade-display);
+  font-size: 30px;
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
   margin: 0;
 }
 .fight-replay .outcome-badge {
@@ -738,9 +761,11 @@
   display: flex;
   align-items: baseline;
   gap: 2px;
-  font-size: 33px;
-  letter-spacing: -1.6px;
-  font-weight: 500;
+  font-family: var(--font-arcade-display);
+  font-size: 46px;
+  font-style: italic;
+  letter-spacing: -1px;
+  font-weight: 900;
   font-variant-numeric: tabular-nums;
   line-height: 1.35;
   margin-top: 4px;
@@ -755,6 +780,7 @@
   align-items: center;
   gap: 1px;
   font-size: 9px;
+  font-style: normal;
   font-weight: 400;
   letter-spacing: 0;
   margin-left: 10px;
@@ -773,7 +799,7 @@
   margin: 11px 14px 0;
   cursor: crosshair;
   touch-action: pan-y;
-  border-radius: 4px;
+  border-radius: 0;
 }
 .fight-replay .market-chart svg {
   display: block;
@@ -787,7 +813,7 @@
 .fight-replay .chart-label {
   fill: hsl(var(--muted-foreground));
   font-size: 9px;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-arcade-mono);
 }
 .fight-replay .chart-cursor {
   stroke: hsl(var(--muted-foreground));
@@ -815,7 +841,7 @@
   border: 0;
   background: transparent;
   color: hsl(var(--muted-foreground));
-  border-radius: 4px;
+  border-radius: 0;
   font-size: 8px;
   padding: 3px 7px;
   white-space: nowrap;
@@ -823,6 +849,8 @@
 .fight-replay .chart-range .active {
   background: hsl(var(--secondary));
   color: hsl(var(--foreground));
+  font-weight: 700;
+  transform: skew(-7deg);
 }
 .fight-replay .events-card {
   margin-top: 23px;
@@ -997,6 +1025,44 @@
 .fight-replay.light .heat-track i {
   background: #b16e48;
 }
+
+.fight-replay :is(.eyebrow, .session-meta, .round-summary > span,
+  .fighter-summary div > span, .card-topline, .timecode, .speed-select,
+  .received-label, .body-zone, .mirror-total, .impact-legend, .small-label,
+  .exchange-direction, .quote-name, .quote-change, .quote-price, .market-footer,
+  .chart-range, .event-table-header, .event-time, .site-footer) {
+  font-family: var(--font-arcade-mono);
+}
+.fight-replay :is(.eyebrow, .card-topline, .received-label, .quote-name,
+  .chart-range, .site-footer) {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.fight-replay .fighter-token {
+  font-family: var(--font-arcade-display);
+  font-style: italic;
+  font-weight: 900;
+  transform: skew(-7deg);
+}
+.fight-replay .brand-icon {
+  transform: skew(-7deg);
+}
+.fight-replay .chart-range button {
+  padding: 6px 10px;
+  font-size: 10px;
+}
+.fight-replay .transport-buttons button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid hsl(var(--border));
+}
+.fight-replay .speed-select {
+  border: 1px solid hsl(var(--border));
+}
+.fight-replay .exchange-observation {
+  line-height: 1.8;
+}
+
 @media (min-width: 1450px) {
   .fight-replay .avatar-stage {
     height: 268px;
@@ -1038,7 +1104,7 @@
     padding: 26px 20px 0;
   }
   .fight-replay .site-header {
-    padding: 0 20px;
+    padding-inline: 20px;
   }
   .fight-replay .event-table-header,
   .fight-replay .event-row {
@@ -1101,7 +1167,7 @@
     font-size: 9px;
   }
   .fight-replay .page-heading h1 {
-    font-size: 24px;
+    font-size: 32px;
   }
   .fight-replay .site-footer {
     align-items: flex-start;
@@ -1143,7 +1209,8 @@
     gap: 7px;
   }
   .fight-replay .site-header {
-    height: 64px;
+    min-height: 78px;
+    padding-block: 16px;
   }
   .fight-replay .fight-strip {
     margin-bottom: 18px;
@@ -1153,7 +1220,7 @@
     gap: 9px;
   }
   .fight-replay .fighter-summary strong {
-    font-size: 13px;
+    font-size: 22px;
   }
   .fight-replay .fighter-summary div > span {
     font-size: 9px;
@@ -1163,7 +1230,7 @@
     letter-spacing: 0.8px;
   }
   .fight-replay .round-summary > strong {
-    font-size: 16px;
+    font-size: 32px;
   }
   .fight-replay .fighter-token {
     width: 30px;
@@ -1179,10 +1246,10 @@
     padding: 22px 12px 0;
   }
   .fight-replay .site-header {
-    padding: 0 12px;
+    padding-inline: 12px;
   }
   .fight-replay .brand {
-    font-size: 16px;
+    font-size: 24px;
     gap: 8px;
   }
   .fight-replay .brand-icon {
@@ -1200,7 +1267,7 @@
     padding: 6px;
   }
   .fight-replay .page-heading h1 {
-    font-size: 21px;
+    font-size: 30px;
   }
   .fight-replay .page-heading p {
     font-size: 10px;
@@ -1213,7 +1280,7 @@
     gap: 6px;
   }
   .fight-replay .fighter-summary strong {
-    font-size: 11px;
+    font-size: 19px;
   }
   .fight-replay .fighter-token {
     width: 25px;
@@ -1221,7 +1288,7 @@
     font-size: 10px;
   }
   .fight-replay .round-summary > strong {
-    font-size: 14px;
+    font-size: 28px;
   }
   .fight-replay .round-summary strong span {
     font-size: 10px;

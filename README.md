@@ -8,6 +8,8 @@ Built for the Real-Time Video Agents Hack — NYC, October 9, 2026.
 
 ## Local web application
 
+The web UI uses arcade typography, square panels, offset shadows, subtle texture, and angled selected controls while preserving the existing neutral and peach/blue palette.
+
 The repository-root Next.js app provides live camera sessions, phone pairing, a Python YOLO receiver, and the `/replay` viewer with impact mirrors and simulated market quotes. Live mode reports pose-based engagement; confirmed contact detection and numeric momentum are unavailable. Replay contacts and market quotes are scripted fixtures, not live analysis.
 
 For the web preview, run `pnpm install --frozen-lockfile` and `pnpm dev`, then open `http://localhost:4173`. Live capture additionally requires `pnpm live:setup` and `pnpm live:dev`; see [live setup](docs/LIVE_SETUP.md) and [YOLO acceptance](docs/LIVE_YOLO.md). The separate Demo/local-file mode uses a simulated curve and does not upload the chosen file. Physical phone and TURN acceptance remain outstanding.

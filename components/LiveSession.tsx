@@ -455,11 +455,11 @@ export function LiveSession({
           ? "YOLO unavailable · video continues without annotation"
           : "YOLO initializing · video continues without annotation";
   return (
-    <div className="min-h-svh pb-6">
-      <header className="border-b">
+    <div className="arcade-app min-h-svh pb-6">
+      <header className="arcade-header border-b">
         <div className="mx-auto flex min-h-14 max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6">
           <div className="flex items-center gap-2">
-            <Link href="/" className="text-sm font-semibold">
+            <Link href="/" className="arcade-brand">
               FightLens
             </Link>
             <Badge variant="outline">{ended ? "Ended" : "Live camera"}</Badge>
