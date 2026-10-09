@@ -4,11 +4,21 @@ Open index.html locally. Use the top navigation to switch between the audience
 HUD and data inspector. Playback position is shared. The inspector links to
 analysis.html with the original curves and supports event JSON export.
 
-This is an offline replay of the supplied 0_realhuman measurements, not live
-inference or a connected database. Engagement status is reused from the input;
-no new hysteresis classifier has been added. Punch candidates use extension
-threshold crossings at 0.9, not confirmed hits. Pressure is a visual mapping:
-100 × clamp(1 - reach / 1.5, 0, 1) × arm extension. It is not damage or health.
+The replay joins two rounds: 10 s of UFC 300 (Pereira vs Rountree) and 15 s of
+the local sparring clip (0_realhuman). Each round is tracked and measured on
+its own, so A/B, the clock and punch counts restart at the join.
 
-The supplied measure.mp4 has its pose overlays baked in. A clean camera video
-can replace it when a matching unannotated source is available.
+Regenerate data.js, analysis.html and measure.mp4 from yolo_branch:
+
+    python concat.py outputs/demo_ufc_local \
+        "outputs/pereira_rountree_45s:0:10:UFC 300 replay:PEREIRA:ROUNTREE" \
+        "outputs/0_realhuman:0:15:Local arena:BLACK KIT:WHITE KIT"
+    python viewer.py outputs/demo_ufc_local
+
+This is an offline replay of precomputed YOLO measurements, not live inference
+or a connected database. Engagement comes from yolo_branch/engage.py. Punch
+candidates use extension threshold crossings at 0.9, not confirmed hits.
+Pressure is a visual mapping: 100 × clamp(1 - reach / 1.5, 0, 1) × arm
+extension. It is not damage or health.
+
+measure.mp4 has the pose overlays baked in.

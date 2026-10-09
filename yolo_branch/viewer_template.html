@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FightLens 距离曲线</title>
+<title>FightLens Analysis</title>
 <style>
   :root {
     --bg: #0e1013; --panel: #171a1f; --line: #262b33; --text: #e8eaed; --muted: #8b939e;
@@ -16,6 +16,12 @@
   header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
   h1 { font-size: 18px; margin: 0; font-weight: 600; }
   .sub { color: var(--muted); font-size: 13px; }
+  .seg { font-size: 13px; padding: 2px 10px; border-radius: 12px; background: var(--panel);
+         border: 1px solid var(--line); }
+  .seg:empty { display: none; }
+  nav.back { display: flex; gap: 16px; flex-wrap: wrap; padding: 12px 16px; background: #1a1d22;
+             border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  nav.back a { color: var(--a); text-decoration: none; }
   .video-wrap { background: #000; border-radius: 10px; overflow: hidden; }
   video { display: block; width: 100%; max-height: 56vh; background: #000; }
   .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 12px; }
@@ -31,7 +37,7 @@
   .tile.hot { border-color: var(--hit); }
   .tile.engaged { background: #3a1517; border-color: var(--hit); }
   .tile.engaged .v { color: var(--hit); }
-  canvas.strip { height: 64px; }
+  canvas.strip { height: 76px; }
   .chart { background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
            padding: 8px 10px 4px; margin-bottom: 8px; }
   .chart-head { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; font-size: 13px; }
@@ -51,78 +57,79 @@
   .note { color: var(--muted); font-size: 12px; margin-top: 14px; }
   @media (max-width: 640px) {
     .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    canvas.strip { height: 64px; }
+    canvas.strip { height: 76px; }
     canvas { height: 120px; }
   }
 </style>
 </head>
 <body>
+<nav class="back"><a href="index.html">← FIGHTLENS / Back to audience</a><span>Offline analysis replay · Raw curves</span></nav>
 <main>
   <header>
-    <h1>FightLens · 距离曲线</h1>
+    <h1>FightLens · Distance curves</h1>
     <span class="sub" id="clip"></span>
-    <span class="sub">A = <span style="color:var(--a)">黑衣</span>　B = <span style="color:var(--b)">白衣</span></span>
+    <span class="seg" id="seg"></span>
   </header>
 
-  <div class="video-wrap"><video id="video" src="__VIDEO__" playsinline muted controls></video></div>
+  <div class="video-wrap"><video id="video" src="measure.mp4" playsinline muted controls></video></div>
 
   <div class="controls">
-    <button id="play">▶ 播放</button>
+    <button id="play">▶ Play</button>
     <select id="rate">
       <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
       <option value="1" selected>1×</option><option value="2">2×</option>
     </select>
-    <label class="toggle"><input type="checkbox" id="ghost"> 预先显示完整曲线（淡色）</label>
+    <label class="toggle"><input type="checkbox" id="ghost"> Show full curves in advance (faint)</label>
     <span class="time" id="time">0.00 s</span>
   </div>
 
   <div class="tiles">
-    <div class="tile" id="t-eng"><div class="k">对打（YOLO 判定）</div><div class="v" id="v-eng">–</div></div>
-    <div class="tile"><div class="k">重心距离</div><div class="v" id="v-com" style="color:var(--cog)">–</div></div>
-    <div class="tile"><div class="k">A 手腕 → B</div><div class="v" id="v-reachA" style="color:var(--a)">–</div></div>
-    <div class="tile"><div class="k">B 手腕 → A</div><div class="v" id="v-reachB" style="color:var(--b)">–</div></div>
-    <div class="tile" id="t-extA"><div class="k">A 手臂伸直</div><div class="v" id="v-extA" style="color:var(--a)">–</div></div>
-    <div class="tile" id="t-extB"><div class="k">B 手臂伸直</div><div class="v" id="v-extB" style="color:var(--b)">–</div></div>
+    <div class="tile" id="t-eng"><div class="k">Engagement (YOLO-based rule)</div><div class="v" id="v-eng">–</div></div>
+    <div class="tile"><div class="k">Center distance</div><div class="v" id="v-com" style="color:var(--cog)">–</div></div>
+    <div class="tile"><div class="k">A wrist → B</div><div class="v" id="v-reachA" style="color:var(--a)">–</div></div>
+    <div class="tile"><div class="k">B wrist → A</div><div class="v" id="v-reachB" style="color:var(--b)">–</div></div>
+    <div class="tile" id="t-extA"><div class="k">A arm extension</div><div class="v" id="v-extA" style="color:var(--a)">–</div></div>
+    <div class="tile" id="t-extB"><div class="k">B arm extension</div><div class="v" id="v-extB" style="color:var(--b)">–</div></div>
   </div>
 
   <div class="chart">
-    <div class="chart-head"><b>对打 0 / 1</b>
-      <span class="legend"><span><i class="sw" style="background:var(--hit)"></i>YOLO 判定</span>
-      <span id="lab-legend"><i class="sw" style="background:#9aa3ad"></i>人工目测参考</span>
-      <span>= 攻击距离内有人出手（手臂伸直 ≥ 0.85 或肢体速度峰值）</span></span></div>
+    <div class="chart-head"><b>Engagement 0 / 1</b>
+      <span class="legend"><span><i class="sw" style="background:var(--hit)"></i>YOLO-based rule</span>
+      <span id="lab-legend"><i class="sw" style="background:#9aa3ad"></i>Manual reference</span>
+      <span>= action within attack range (arm extension ≥ 0.85 or peak limb speed)</span></span></div>
     <canvas id="c-eng" class="strip"></canvas>
   </div>
   <div class="chart">
-    <div class="chart-head"><b>重心距离</b><span class="legend">双肩＋双髋中心之间，单位：躯干长度</span></div>
+    <div class="chart-head"><b>Center distance</b><span class="legend">Between shoulder/hip centers; units: torso length</span></div>
     <canvas id="c-com"></canvas>
   </div>
   <div class="chart">
-    <div class="chart-head"><b>手腕到对手头/躯干</b>
+    <div class="chart-head"><b>Wrist to opponent head/torso</b>
       <span class="legend"><span><i class="sw" style="background:var(--a)"></i>A → B</span>
-      <span><i class="sw" style="background:var(--b)"></i>B → A</span><span>越低越近</span></span></div>
+      <span><i class="sw" style="background:var(--b)"></i>B → A</span><span>Lower = closer</span></span></div>
     <canvas id="c-reach"></canvas>
   </div>
   <div class="chart">
-    <div class="chart-head"><b>手臂伸直程度</b>
+    <div class="chart-head"><b>Arm extension</b>
       <span class="legend"><span><i class="sw" style="background:var(--a)"></i>A</span>
-      <span><i class="sw" style="background:var(--b)"></i>B</span><span>1 = 完全伸直，虚线 0.9 = 出拳阈值</span></span></div>
+      <span><i class="sw" style="background:var(--b)"></i>B</span><span>1 = fully extended; dashed 0.9 = candidate threshold</span></span></div>
     <canvas id="c-ext"></canvas>
   </div>
 
-  <div class="log-head">出拳候选（手臂伸直 ≥ 0.9，随播放出现，点击跳转）</div>
+  <div class="log-head">Punch candidates (arm extension ≥ 0.9; appear during playback; click to seek)</div>
   <div class="log" id="log"></div>
 
-  <p class="note">数据来自 YOLO Pose 关键点（measure.py），画面内二维距离，已按躯干长度归一化。紫色竖线 = 检测到的镜头切换。出拳候选只是手臂动作，不代表命中。</p>
+  <p class="note">Source: YOLO Pose keypoints (measure.py). Distances are 2D image-plane measurements normalized by torso length. Purple lines indicate detected camera cuts and joins between rounds. Punch candidates indicate arm motion, not confirmed hits.</p>
 </main>
 
+<script src="data.js"></script>
 <script>
-const DATA = __DATA__;
 const EXT_THRESHOLD = 0.9;
 const C = { a: "#ffb400", b: "#1ea0ff", cog: "#50e050", cut: "#7a3cff", grid: "#262b33", muted: "#8b939e" };
 
 const video = document.getElementById("video");
 const t = DATA.t, n = t.length, fps = DATA.fps, duration = t[n - 1] + 1 / fps;
-document.getElementById("clip").textContent = DATA.clip + " · " + n + " 帧 @ " + fps.toFixed(2) + " fps";
+document.getElementById("clip").textContent = DATA.clip + " · " + n + " frames @ " + fps.toFixed(2) + " fps";
 
 // Punch candidates: runs where arm extension >= threshold.
 const punches = [];
@@ -140,6 +147,10 @@ for (const who of ["A", "B"]) {
 punches.sort((p, q) => p.start - q.start);
 
 const LABELS = DATA.labels || null;
+const LABEL_RANGES = DATA.label_ranges || [];
+const SEGMENTS = DATA.segments || [];
+const segText = s => `${s.title} · A = ${s.A}, B = ${s.B}`;
+const segAt = time => SEGMENTS.find(s => time >= s.start && time < s.end) || SEGMENTS[SEGMENTS.length - 1];
 if (!LABELS) document.getElementById("lab-legend").style.display = "none";
 const charts = [
   { el: "c-eng", binary: true, series: [], lines: [] },
@@ -158,7 +169,7 @@ for (const ch of charts) {
   ch.ymin = Math.max(0, lo - pad); ch.ymax = hi + pad;
 }
 
-const PAD = { l: 34, r: 10, t: 8, b: 20 };
+const PAD = { l: 48, r: 10, t: 8, b: 20 };
 function resize() {
   const dpr = window.devicePixelRatio || 1;
   for (const ch of charts) {
@@ -176,13 +187,19 @@ function drawBinary(ch, cur) {
   const { ctx, w, h } = ch;
   const X = time => PAD.l + (time / duration) * (w - PAD.l - PAD.r);
   ctx.clearRect(0, 0, w, h);
-  const rows = LABELS ? [[PAD.t, 22], [PAD.t + 26, 10]] : [[PAD.t, 32]];
+  const top = PAD.t + (SEGMENTS.length > 1 ? 12 : 0);
+  const rows = LABELS ? [[top, 22], [top + 26, 10]] : [[top, 32]];
   ctx.font = "11px -apple-system, sans-serif"; ctx.fillStyle = C.muted;
   ctx.textAlign = "right"; ctx.textBaseline = "middle";
   ctx.fillText("YOLO", PAD.l - 4, rows[0][0] + rows[0][1] / 2);
-  if (LABELS) ctx.fillText("目测", PAD.l - 4, rows[1][0] + rows[1][1] / 2);
+  if (LABELS) ctx.fillText("Manual", PAD.l - 4, rows[1][0] + rows[1][1] / 2);
   ctx.fillStyle = "#1f242b";
-  for (const [y, hh] of rows) ctx.fillRect(PAD.l, y, w - PAD.l - PAD.r, hh);
+  ctx.fillRect(PAD.l, rows[0][0], w - PAD.l - PAD.r, rows[0][1]);
+  if (LABELS) for (const [a, b] of LABEL_RANGES) ctx.fillRect(X(a), rows[1][0], X(b) - X(a), rows[1][1]);
+  if (SEGMENTS.length > 1) {                 // segment names above the strip
+    ctx.font = "10px -apple-system, sans-serif"; ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+    for (const s of SEGMENTS) { ctx.fillStyle = C.muted; ctx.fillText(segText(s), X(s.start) + 3, top - 2); }
+  }
   const runs = (vals, upto) => {           // [start, end] runs where vals[i] is truthy, up to frame upto
     const out = []; let s = null;
     for (let i = 0; i <= upto; i++) {
@@ -296,8 +313,10 @@ function draw(force) {
   lastCur = cur;
   for (const ch of charts) drawChart(ch, cur);
   document.getElementById("time").textContent = video.currentTime.toFixed(2) + " / " + duration.toFixed(2) + " s";
+  const seg = segAt(t[cur]);
+  document.getElementById("seg").textContent = seg ? segText(seg) : "";
   const eng = DATA.engaged[cur];
-  document.getElementById("v-eng").textContent = eng ? "1 · 对打" : "0";
+  document.getElementById("v-eng").textContent = eng ? "1 · Engagement" : "0";
   document.getElementById("t-eng").classList.toggle("engaged", !!eng);
   document.getElementById("v-com").textContent = fmt(DATA.com_dist[cur]);
   document.getElementById("v-reachA").textContent = fmt(DATA.reach_A[cur]);
@@ -313,7 +332,7 @@ function draw(force) {
   for (; shown < visible; shown++) {
     const p = punches[shown], chip = document.createElement("span");
     chip.className = "chip " + p.who;
-    chip.innerHTML = `<span class="who">${p.who}</span>${p.start.toFixed(2)}s · 手腕距对手 ${p.reach.toFixed(2)}`;
+    chip.innerHTML = `<span class="who">${p.who}</span>${p.start.toFixed(2)}s · Wrist distance ${p.reach.toFixed(2)}`;
     chip.onclick = () => { video.currentTime = Math.max(0, p.start - 0.5); };
     logEl.appendChild(chip);
   }
@@ -336,8 +355,8 @@ for (const ch of charts) {
 
 const playBtn = document.getElementById("play"), ghost = document.getElementById("ghost");
 playBtn.onclick = () => (video.paused ? video.play() : video.pause());
-video.addEventListener("play", () => (playBtn.textContent = "❚❚ 暂停"));
-video.addEventListener("pause", () => (playBtn.textContent = "▶ 播放"));
+video.addEventListener("play", () => (playBtn.textContent = "❚❚ Pause"));
+video.addEventListener("pause", () => (playBtn.textContent = "▶ Play"));
 video.addEventListener("seeked", () => draw(true));
 document.getElementById("rate").onchange = e => (video.playbackRate = +e.target.value);
 ghost.onchange = () => draw(true);

@@ -1,42 +1,107 @@
 # FightLens
 
-A real-time MMA viewing assistant that shows who struck whom, where contact occurred, and how the exchange unfolded.
+**Who is more likely to win—and what just changed?**
+
+FightLens is a real-time MMA viewing agent being built to recognize fight actions, generate commentary, and update estimated win probabilities as a match unfolds. The goal is to connect every update to the exchanges viewers can see and replay.
 
 Built for the Real-Time Video Agents Hack — NYC, October 9, 2026.
 
 **Status: live camera transport and diagnostic receiver implemented; video analysis remains planned.** The Next.js application uses React, TypeScript, shadcn/ui, Recharts, and LiveKit. A desktop or paired phone publishes a camera track to the viewer and Python receiver. The live UI reports actual receiver frames and explicitly leaves numeric momentum unavailable. There is no connected strike classifier or measured inference performance result yet.
 
 For the live MVP, run `pnpm install --frozen-lockfile`, `pnpm live:setup`, and `pnpm live:dev`, then open `http://localhost:4173`. See [live setup and deployment boundaries](docs/LIVE_SETUP.md) for prerequisites and phone access. [The web MVP guide](docs/WEB_MVP.md) covers the separate Demo/local-file mode. All Demo curve values are simulated. The earlier Chrome prototype remains in [extension/](extension/README.md) for reference.
+## Why FightLens
 
-## First milestone
+During a fast exchange, a viewer has only a moment to decide: did that punch land, was it blocked, and who now has the advantage?
 
-Use a 30–60 second standing-exchange video with both fighters clearly visible to evaluate:
+FightLens brings those questions into one viewing experience: the fight, the detected actions, an explanation of the exchange, and an evolving estimate of who is more likely to win. Its agent loop continuously observes incoming footage, maintains fight context, and revises its assessment as new evidence arrives.
 
-- Stable fighter identity: A and B remain correctly assigned throughout the clip.
-- Attack direction: who attacked whom.
-- Contact location: head, torso, or leg.
-- Outcome: landed, blocked, missed, unknown, or not a strike.
-- End-to-end latency when frames are processed at the video's original playback speed.
+## The demo we are building
 
 The web MVP implements the viewing interaction with a simulated momentum curve using shadcn/ui's Neutral theme. Fighter tracking overlays, received-strike heatmaps, and actual evidence replay remain planned.
+The three-minute hackathon demo follows one visible change in the fight:
 
-## Proposed pipeline
+1. **Watch.** Feed in MMA footage and track both fighters with identity and pose overlays.
+2. **Understand.** Detect an attack candidate and review whether it landed, was blocked, or missed. Keep ambiguous contact unknown.
+3. **Explain.** Generate commentary and analysis describing the exchange and the observed shift in fight momentum.
+4. **Estimate.** Update the fighters' estimated win probabilities and plot them over time alongside the YOLO video and analysis.
+5. **Replay.** Return to the relevant video evidence to inspect the exchange behind the update.
+
+The key demo moment is an exchange appearing in the YOLO video, followed by matching analysis and a visible change in the probability curves. All three views share the same fight timeline so viewers can follow what the system observed and how its assessment evolved.
+
+### Viewer layout
+
+| View | What the audience sees |
+| --- | --- |
+| **Win-probability curves** | A curve for each fighter, with fight time on the horizontal axis and estimated win probability on the vertical axis. Timestamped exchange markers connect updates to video evidence. |
+| **Real-time YOLO video** | Fight footage with stable A/B identities, pose overlays, and attack-candidate indicators as frames arrive. |
+| **Commentary and analysis** | Timestamped descriptions of observed exchanges and an interpretation of the evolving fight state, with links back to the relevant footage. |
+
+Selecting an exchange marker returns the video and analysis to that point in the fight. The curves show estimates made from evidence available at each timestamp.
+
+Planned inputs include prerecorded footage and live capture from a computer or phone camera. The first engineering milestone uses prerecorded footage; camera capture is a planned extension.
+
+## How it works
+
+The proposed architecture gives each component a distinct job:
+
+| Component | Role in FightLens |
+| --- | --- |
+| **Ultralytics YOLO Pose + tracking** | Track fighter identity and pose; use limb motion to propose attack candidates. |
+| **NVIDIA Cosmos** | Review short exchanges, verify contact outcomes, and generate commentary grounded in the observed events. |
+| **VAST** | Organize video evidence and associated event, commentary, and prediction records into a retrievable fight history. |
+| **OpenAI Luna Decisions** | Evaluate current evidence and accumulated context to produce prototype win-probability estimates. |
+
+The repository includes initial YOLO tracking and exchange-analysis scripts, plus smoke-test scripts that send per-second frames to Cosmos and to Luna Decisions (see below). VAST integration remains planned; endpoint access, model versions, end-to-end latency, and application-level accuracy still need validation. Weights & Biases / Weave is also planned for experiment and model-call tracing.
 
 ```mermaid
 flowchart TD
-    A[Timestamped video and rolling frame buffer] --> B[YOLO Pose and fighter tracking]
-    B --> C[Live identity and skeleton overlays]
+    A[Video or camera input and rolling frame buffer] --> B[YOLO Pose and fighter tracking]
+    B --> C[Live YOLO video with identity and pose overlays]
     B --> D[Motion-based strike candidates]
     A --> E[Short contact-centered clips]
     D --> E
-    E --> F[Asynchronous Cosmos event verification]
+    E --> F[Cosmos event verification]
     F --> G[Deduplicated event log]
-    G --> H[Received-strike heatmaps and evidence replay]
+    G --> I[Cosmos commentary]
+    G --> H[Event timeline and evidence replay]
+    G --> J[Accumulated fight context]
+    J --> K[Luna Decisions probability estimates]
+    E --> L[VAST evidence and analysis history]
+    G --> L
+    I --> L
+    K --> L
+    C --> M[Viewer: YOLO video, probability curves, and analysis]
+    I --> M
+    K --> M
 ```
 
-See [the pipeline and validation plan](docs/PIPELINE.md) for model choices, event definitions, latency budgets, and acceptance criteria.
+OpenAI's [Decisions API](https://developers.openai.com/api/docs/guides/decisions) supports text and image evidence and typed probability, choice, and score answers with `gpt-6-luna`. FightLens proposes using that capability for probability estimation; validating and calibrating those estimates against historical fight outcomes is a separate research task.
 
-See [the product requirements](docs/PRD.md) for the Next.js camera/WebRTC workflow, linked momentum and heatmaps, Jev judgments, and validation requirements.
+The [initial pipeline and validation plan](docs/PIPELINE.md) covers the first engineering milestone: tracking, contact verification, heatmaps, and evidence replay on a short standing exchange. Commentary, probability estimation, camera capture, and VAST integration extend that initial plan. The version `0.1` contract below covers tracking and strike events; interfaces for these additional components still need to be defined before integration.
+
+## From demo to product
+
+FightLens starts with a viewing experience and could grow into an analysis service for both professional events and everyday training.
+
+| Potential customer | Product value | Proposed business model |
+| --- | --- | --- |
+| **Event organizers and streaming platforms** | Embed live action analysis, commentary, and fight trends into the viewing experience. | Per-event licensing, video-processing usage, or SDK/API licensing. |
+| **Gyms and coaches** | Turn phone-recorded training sessions into attack statistics and searchable evidence replay. | Coach or gym subscriptions. |
+| **Sports media and creators** | Find notable exchanges and build analysis around timestamped video evidence. | Subscription tools or API usage. |
+
+The longer-term opportunity is a reusable analysis layer for combat sports. An authorized, labeled, and evaluated dataset linking footage, events, and model assessments could support better validation and expansion into additional disciplines.
+
+## Current repository status
+
+This checkout contains the project design, module interface contract, fictional sample data, earlier scripted visual assets, and [YOLO tracking and exchange-analysis scripts](yolo_branch/README.md). Those scripts feed the [arcade replay demo](examples/arcade/README.md), which plays recorded footage with precomputed motion signals. [Cosmos per-second scene understanding](#cosmos-per-second-video-understanding-smoke-test) and [Luna Decisions win probabilities](#openrouter-per-second-win-probability-demo) exist as smoke-test scripts. The synchronized win-probability curves, YOLO video, and commentary interface, live inference, VAST integration, and computer/phone camera capture remain planned. The product experience above describes the target demo; end-to-end validation remains outstanding.
+
+### First engineering milestone
+
+Use a 30–60 second standing-exchange video with both fighters clearly visible to evaluate stable A/B identity, attack direction, contact region, landed/blocked/missed/unknown outcomes, and end-to-end latency at the video's original playback speed.
+
+Validate the video, tracking overlays, timestamped events, and evidence replay first. That evidence pipeline will support the target viewer: synchronized win-probability curves, real-time YOLO video, and commentary and analysis, followed by camera input.
+
+See [the product requirements](docs/PRD.md) for the Next.js camera/WebRTC workflow, linked momentum and heatmaps, Jev judgments, and validation requirements. That document currently defines a momentum-based scope without win-probability prediction; this README proposes the expanded probability-curve demo described above.
 
 ## Repository layout
 
@@ -44,12 +109,14 @@ Each module has one owner and only that owner edits it. Modules talk to each oth
 
 ```
 fightlens/
-  README.md        Event JSON contract — the team's single shared interface
+  README.md        Project story and Event JSON contract
   yolo_branch/     YOLO Pose + tracking → tracks.jsonl, candidates.jsonl
   video_branch/    Clip-level video-model verification (Cosmos) → verdicts.jsonl
   fusion/          Merge candidates + verdicts → events.json (deduplicated ledger)
-  frontend/        Viewer: video, A/B overlays, heatmaps, event list, replay
-  examples/        Scripted mock demo + contract sample files (examples/contract/)
+  frontend/        Planned viewer: probability curves, YOLO video, analysis, replay
+  scripts/         Cosmos per-second scene understanding and Luna win-probability smoke tests
+  tests/           Unit tests for scripts/
+  examples/        Arcade replay demo, contract sample files, earlier scripted visual assets
   docs/            Pipeline and validation plan
   data/            Local only (git-ignored): source videos
   outputs/         Local only (git-ignored): every module writes here
@@ -180,25 +247,131 @@ These entries describe intended integrations, not completed integrations or conf
 - A heatmap represents detected received strikes, not a medical injury assessment or impact-force measurement.
 - A blocked strike is recorded separately from a direct hit to the intended body region.
 - Unclear contact stays unknown rather than being forced into a binary answer.
-- Win-probability prediction is a later research task requiring historical evaluation and calibration. No validated win-probability model is included.
+- Prototype win-probability estimates require historical evaluation and calibration before their predictive accuracy can be claimed. No validated win-probability model is included.
 - Single-clip results will establish limited feasibility, not general reliability across MMA broadcasts.
 
-## Next actions
+## Cosmos per-second video understanding smoke test
 
-- [x] Select test videos and keep them outside Git (see [Source videos](#source-videos)).
-- [x] Define the module layout and event JSON contract.
-- [ ] Annotate attacks, outcomes, body regions, and uncertain events.
-- [ ] Run pose and identity tracking on the first 10 seconds.
-- [ ] Add candidate generation and event deduplication.
-- [ ] Benchmark the available Cosmos endpoint on short clips.
-- [ ] Compare geometry-only and Cosmos-assisted decisions on held-out footage.
-- [ ] Build the heatmap, event list, and evidence replay interface.
-- [ ] Record a three-minute project demo and make the repository accessible to reviewers.
+`scripts/cosmos_video_understanding.py` implements the first end-to-end model path:
+
+1. Split the input into complete one-second windows.
+2. Sample five ordered JPEG frames at `+0.1`, `+0.3`, `+0.5`, `+0.7`, and `+0.9` seconds.
+3. Send the fixed UFC scene-observer system prompt and one Cosmos3 Reason request per
+   source-video second using NVIDIA NIM's temporal `video_frames` input.
+4. Pass the previous successful second's complete scene JSON back as `previous_state`.
+5. Append the structured scene result, raw model text, latency, usage, and any error to JSONL.
+
+Run this inside the VAST Builders Challenge workshop VM, or locally after securely exporting
+the Team bearer token. The VM's single `/config/<team>.config` contains
+`GPU_BEARER_TOKEN`; the script reads that file without printing its values. It defaults to the
+workshop Cosmos endpoint `http://166.19.38.112:8001`. `--api-base`,
+`COSMOS3_REASON_URL`, or `COSMOS_API_BASE` can override that endpoint. Do not copy the bearer
+token into source control. The workshop endpoint uses plain HTTP, so local calls expose the
+bearer token and video frames to the network path; use it only from a trusted network.
+
+First check local sampling without contacting Cosmos:
+
+```sh
+python3 scripts/cosmos_video_understanding.py \
+  videos/pereira_rountree_45s.mp4 \
+  --max-windows 1 \
+  --dry-run
+```
+
+Then verify the workshop endpoint and discover its current model ID:
+
+```sh
+python3 scripts/cosmos_video_understanding.py --check
+```
+
+Run a single one-second inference before increasing the request count:
+
+```sh
+python3 scripts/cosmos_video_understanding.py \
+  /path/to/permitted-test-video.mp4 \
+  --fighter-map '{"A":"fixed identity or appearance","B":"fixed identity or appearance"}' \
+  --max-windows 1
+```
+
+`--fighter-map` accepts inline JSON or `@/path/to/fighters.json`. It must contain exactly
+the keys `A` and `B`; each value may be a non-empty string or JSON object. It is required for
+inference so the model cannot silently reassign A/B based on screen position. The first
+analyzed window receives `previous_state: null`; each later window receives the complete scene
+JSON from the immediately preceding successful window.
+
+Results default to `runs/cosmos/<video-stem>.jsonl`. Re-running resumes the file and skips only
+the contiguous successful prefix whose video, model, fixed system prompt, fighter map, and
+sampling configuration match the current run. This preserves the `previous_state` chain. Pass
+`--overwrite` to start over. Non-JSON model output is stored as `invalid_response` and is retried
+on a later run.
+`--realtime` paces request starts at one per source second when inference latency allows it.
+Shared workshop GPUs may take longer than one second or return `429`; the client runs serially
+and retries `429`, `5xx`, timeouts, and transient connection failures with backoff.
+The client validates the fixed JSON schema and stops at the first failed window so it never
+feeds a non-adjacent or malformed state into the next second.
+Each successful one-second scene is also emitted immediately as one compact JSON line on
+standard output; progress and errors stay on standard error, while the full records continue
+to be persisted in the JSONL output file.
+
+The default `--media-mode auto` uses `video_frames`. If the workshop wrapper rejects that
+NIM 1.7 input type, the same five frames are encoded as a one-second 5 FPS MP4 and retried as
+`video_url` with `num_frames=5`.
+
+For a local non-workshop NIM, copy `.env.example` to `.env` and fill the endpoint credentials.
+Never commit `.env`. Run tests with:
+
+```sh
+python3 -m unittest discover -s tests -v
+```
+
+## OpenRouter per-second win-probability demo
+
+`scripts/openrouter_win_probability.py` reuses the same sampling path, sends five ordered
+frames for each complete video second to OpenRouter's Decisions API, and asks
+`openai/gpt-6-luna-decisions` for a typed A/B choice. The two values in
+`answers.winner.probabilities` are used directly, so this path does not ask a chat model to
+invent or format a probability JSON response. The previous successful result is included as
+context for the next source-video second.
+
+Keep the API key in the current shell, never in a command saved to the repository:
+
+```sh
+export OPENROUTER_API_KEY='replace-with-your-openrouter-key'
+```
+
+Alternatively, copy `.env.example` to the ignored `.env` file and set
+`OPENROUTER_API_KEY` there; the script loads that local file automatically.
+
+Run a three-second local demo:
+
+```sh
+python3 scripts/openrouter_win_probability.py \
+  videos/pereira_rountree_45s.mp4 \
+  --fighter-map '{"A":{"name":"Alex Pereira"},"B":{"name":"Khalil Rountree Jr."}}' \
+  --max-windows 3 \
+  --realtime \
+  --output runs/openrouter/pereira_demo_3s.jsonl \
+  --overwrite
+```
+
+Each successful second is printed immediately as one compact JSON line. Detailed records,
+including source timestamps, latency, usage, and prompt hash, are appended to the output
+JSONL; API keys and encoded frames are not persisted. To replace the probability rubric, use
+`--prompt '...'` or `--prompt-file /path/to/prompt.txt`. The built-in rubric considers only
+visible offense, control, takedown/get-up results, submission threats, defense, and visible
+clock context, while excluding fame, records, odds, known results, and invisible conditions.
+
+`--realtime` prevents a fast request from starting before its source second is due. Requests
+remain serial so `previous_state` stays contiguous; if a model call takes longer than one
+second, this smoke-test path cannot maintain one wall-clock request per second. These outputs
+are uncalibrated model estimates. A famous archived fight with real names can also leak the
+known result through model memory, so use unseen footage or identity-neutral appearance
+descriptions when evaluating whether probabilities come only from visual evidence.
 
 ## References
 
 - [Hackathon page](https://tokensand.com/vastnyc)
 - [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/)
 - [Ultralytics tracking](https://docs.ultralytics.com/modes/track/)
-- [Cosmos Reason2 NIM API](https://docs.nvidia.com/nim/vision-language-models/1.6.0/examples/cosmos-reason2/api.html)
+- [Cosmos 3 Reasoner NIM 1.7 API](https://docs.nvidia.com/nim/vision-language-models/1.7.0/examples/cosmos-reason3/api.html)
 - [TapStats product preview](https://www.tapstats.live/app-tour) — a reference for spectator interaction; its preview describes manual crowd-sourced strike input.
