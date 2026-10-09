@@ -17,6 +17,11 @@ venv/
 node_modules/
 dist/
 .next/
+.plasmo/
+build/
+.parcel-cache/
+*.tsbuildinfo
+output/
 
 # Local media, model weights, and experiment artifacts
 data/

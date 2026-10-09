@@ -4,7 +4,9 @@ A real-time MMA viewing assistant that shows who struck whom, where contact occu
 
 Built for the Real-Time Video Agents Hack — NYC, October 9, 2026.
 
-**Status: project planning.** This repository currently contains the project brief and pipeline design. There is no working application, trained strike classifier, or measured performance result yet.
+**Status: live camera transport and diagnostic receiver implemented; video analysis remains planned.** The Next.js application uses React, TypeScript, shadcn/ui, Recharts, and LiveKit. A desktop or paired phone publishes a camera track to the viewer and Python receiver. The live UI reports actual receiver frames and explicitly leaves numeric momentum unavailable. There is no connected strike classifier or measured inference performance result yet.
+
+For the live MVP, run `pnpm install --frozen-lockfile`, `pnpm live:setup`, and `pnpm live:dev`, then open `http://localhost:4173`. See [live setup and deployment boundaries](docs/LIVE_SETUP.md) for prerequisites and phone access. [The web MVP guide](docs/WEB_MVP.md) covers the separate Demo/local-file mode. All Demo curve values are simulated. The earlier Chrome prototype remains in [extension/](extension/README.md) for reference.
 
 ## First milestone
 
@@ -16,7 +18,7 @@ Use a 30–60 second standing-exchange video with both fighters clearly visible 
 - Outcome: landed, blocked, missed, unknown, or not a strike.
 - End-to-end latency when frames are processed at the video's original playback speed.
 
-The planned viewer interface combines the video, fighter tracking overlays, received-strike heatmaps, and a timestamped event list with evidence replay.
+The web MVP implements the viewing interaction with a simulated momentum curve using shadcn/ui's Neutral theme. Fighter tracking overlays, received-strike heatmaps, and actual evidence replay remain planned.
 
 ## Proposed pipeline
 
@@ -35,6 +37,8 @@ flowchart TD
 See [the pipeline and validation plan](docs/PIPELINE.md) for model choices, event definitions, latency budgets, and acceptance criteria.
 
 See [the product requirements](docs/PRD.md) for the proposed exchange-impact classification, Jev context contract, and subsequent market-response observation experiment.
+
+See [the live camera and WebRTC specification](docs/LIVE_CAPTURE_SPEC.md) for the draft capture, pairing, media transport, Python receiver, result timing, and desktop/mobile acceptance requirements.
 
 ## Planned tools
 
