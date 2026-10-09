@@ -15,14 +15,10 @@ import cv2
 import numpy as np
 import pytest
 
-import asks
-import clips
-import fake_cosmos
-import narrate
-import review
-from cosmos import Cosmos, CosmosError, extract_json
-from memory import Memory
-from windows import CONTEXT, EXCHANGE, Planner, Span, Window, grid, kind_of, plan, read_spans
+from cosmos_branch import asks, clips, fake_cosmos, narrate, review
+from cosmos_branch.cosmos import Cosmos, CosmosError, extract_json
+from cosmos_branch.memory import Memory
+from cosmos_branch.windows import CONTEXT, EXCHANGE, Planner, Span, Window, grid, kind_of, plan, read_spans
 
 WIDTH, HEIGHT, FPS, SECONDS = 640, 360, 30.0, 12
 A_X, B_X = 220, 400

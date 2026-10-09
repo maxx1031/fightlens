@@ -41,8 +41,12 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from cosmos import Cosmos, CosmosError, extract_json
-from memory import EXCHANGE, SUMMARY, Memory
+if __package__:
+    from .cosmos import Cosmos, CosmosError, extract_json
+    from .memory import EXCHANGE, SUMMARY, Memory
+else:
+    from cosmos import Cosmos, CosmosError, extract_json
+    from memory import EXCHANGE, SUMMARY, Memory
 
 SUMMARY_EVERY = 6        # new entries before the notes are rewritten
 SUMMARY_WORDS = 120

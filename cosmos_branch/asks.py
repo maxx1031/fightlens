@@ -25,8 +25,12 @@ from __future__ import annotations
 import re
 from typing import Any, Optional
 
-from cosmos import CosmosError, extract_json
-from windows import EXCHANGE
+if __package__:
+    from .cosmos import CosmosError, extract_json
+    from .windows import EXCHANGE
+else:
+    from cosmos import CosmosError, extract_json
+    from windows import EXCHANGE
 
 TIME_SLACK_S = 0.3       # a time this far outside the window is still taken as meant for it
 
