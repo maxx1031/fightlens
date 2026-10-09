@@ -93,6 +93,12 @@
   </div>
 
   <div class="chart">
+    <div class="chart-head"><b>Win probability · A</b>
+      <span class="legend"><span><i class="sw" style="background:var(--a)"></i>P(A wins); B = 1 − A</span>
+      <span>dots = Luna Decisions updates (engaged seconds only); flat = held; dashed = 50%; uncalibrated</span></span></div>
+    <canvas id="c-win"></canvas>
+  </div>
+  <div class="chart">
     <div class="chart-head"><b>Engagement 0 / 1</b>
       <span class="legend"><span><i class="sw" style="background:var(--hit)"></i>YOLO-based rule</span>
       <span id="lab-legend"><i class="sw" style="background:#9aa3ad"></i>Manual reference</span>
@@ -153,6 +159,7 @@ const segText = s => `${s.title} · A = ${s.A}, B = ${s.B}`;
 const segAt = time => SEGMENTS.find(s => time >= s.start && time < s.end) || SEGMENTS[SEGMENTS.length - 1];
 if (!LABELS) document.getElementById("lab-legend").style.display = "none";
 const charts = [
+  { el: "c-win", series: [{ key: "win_A", color: C.a }], lines: [0.5], fixed: [0, 1] },
   { el: "c-eng", binary: true, series: [], lines: [] },
   { el: "c-com", series: [{ key: "com_dist", color: C.cog }], lines: [] },
   { el: "c-reach", series: [{ key: "reach_A", color: C.a }, { key: "reach_B", color: C.b }], lines: [] },
@@ -281,6 +288,15 @@ function drawChart(ch, cur) {
   }
   ctx.lineWidth = 1.8;
   for (const s of ch.series) { ctx.strokeStyle = s.color; path(s, 0, cur); }
+
+  // decision points on the win-probability chart
+  if (ch.el === "c-win") {
+    for (const p of DATA.win_points || []) {
+      if (p.t > t[cur] + 1e-6) break;
+      ctx.fillStyle = C.a; ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(X(p.t), Y(p.A), 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+  }
 
   // punch markers on the extension chart
   if (ch.el === "c-ext") {

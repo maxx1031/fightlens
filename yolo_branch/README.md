@@ -55,6 +55,12 @@ cd yolo_branch
 for c in pereira_rountree_45s 0_realhuman; do
   .venv/bin/python measure.py outputs/$c && .venv/bin/python engage.py outputs/$c
 done
+# 3b. Win probability (Luna Decisions via OpenRouter), only for engaged seconds.
+#     Needs OPENROUTER_API_KEY in the repository's .env (git-ignored; never commit it).
+.venv/bin/python win_prob.py outputs/pereira_rountree_45s --max-seconds 10 \
+    --fighter-map '{"A":"white shorts","B":"multicolor patterned shorts"}'
+.venv/bin/python win_prob.py outputs/0_realhuman --max-seconds 15 \
+    --fighter-map '{"A":"black hoodie and black cap","B":"white jacket and grey pants"}'
 # 4. Join the rounds: clip_dir:start:end:title:A name:B name
 .venv/bin/python concat.py outputs/demo_ufc_local \
     "outputs/pereira_rountree_45s:0:10:UFC 300 replay:PEREIRA:ROUNTREE" \
@@ -67,6 +73,7 @@ done
 | --- | --- |
 | `measure.py` | `outputs/<clip>/measure.jsonl` (per frame: `com_dist`, `reach_A/B`, `ext_A/B`), `measure.mp4` (overlay) |
 | `engage.py` | `outputs/<clip>/exchange.jsonl` (per frame `engaged` 0/1), `windows.jsonl` (FAR / RANGE / ENGAGE sampling windows for the video model), `engage.png` (tuning plot) |
+| `win_prob.py` | `outputs/<clip>/win_prob.jsonl`: per second, `ok` (sampled) or `held` (not engaged, previous value kept), with both raw answers |
 | `concat.py` | `outputs/<name>/`: joined `measure.mp4`, data resampled to 30 fps, `segments.json` (rounds), camera cuts |
 | `viewer.py` | `examples/arcade/data.js`, `analysis.html` (from `viewer_template.html`), `measure.mp4` |
 
@@ -77,6 +84,13 @@ extension >= 0.85 or a wrist/ankle speed peak) while the two are within 2.2
 torso lengths, or when they are clinched; attacks less than 1 s apart form
 one exchange, padded by 0.25 s. Camera cuts are detected from frame
 histograms; signals and the torso scale reset at each cut.
+
+`win_prob.py` sends a second to `openai/gpt-6-luna-decisions` only when at
+least half of its frames are engaged (10 frames per second sent). Luna strongly
+favours whichever fighter is listed as A, so each second is asked twice with
+A/B swapped and the answers are averaged. The result is an uncalibrated model
+estimate; it also anchors on the previous second, and broadcast graphics can
+reveal fighter names.
 
 These thresholds were tuned on `0_realhuman` against rough hand labels at
 0.5 s resolution (89% frame agreement over 0-15 s). That is an in-sample
