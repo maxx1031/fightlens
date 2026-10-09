@@ -216,10 +216,11 @@ def run(video):
             cv2.rectangle(frame, (int(box[0]),int(box[1])), (int(box[2]),int(box[3])), color, 2)
             cv2.putText(frame, f"{label}  id={entry['track_id']}",
                         (int(box[0]),max(28,int(box[1])-10)), cv2.FONT_HERSHEY_SIMPLEX, 0.8,color,2)
-        cv2.putText(frame, f"{row['t']:.2f}s", (20,35), cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,255,255),2)
         writer.write(frame)
         if i % max(1,round(fps*REVIEW_INTERVAL_SECONDS)) == 0:
-            review.append(cv2.resize(frame,(480,270)))
+            tile = frame.copy()  # timestamp only on review sheets, not in the video
+            cv2.putText(tile, f"{row['t']:.2f}s", (20,35), cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,255,255),2)
+            review.append(cv2.resize(tile,(480,270)))
     cap.release()
     writer.release()
     ffmpeg = shutil.which("ffmpeg")
