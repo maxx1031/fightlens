@@ -1,6 +1,6 @@
 # Live camera MVP
 
-Implemented from [the live capture specification](LIVE_CAPTURE_SPEC.md): camera preview, one publisher per session, QR pairing, independent received video, LiveKit media, a Python diagnostic receiver, bounded frame queues, pause/resume, terminal stop, and authorized status snapshots. No full-session recording or analysis model is included. Physical phone and relay acceptance remains outstanding.
+Implemented from [the live capture specification](LIVE_CAPTURE_SPEC.md): camera preview, one publisher per session, QR pairing, independent received video, LiveKit media, a Python receiver, bounded frame queues, pause/resume, terminal stop, and authorized status snapshots. Optional [Cosmos captions](COSMOS_CAPTIONS.md) review short sampled windows and appear below the video. No full-session recording is saved. Physical phone, relay, and real-model acceptance remain outstanding.
 
 ## Local review
 
@@ -65,7 +65,7 @@ On the desktop, choose **Connect phone**, generate the QR, and scan it on the ph
 ## Runtime and timing limits
 
 - Session state is volatile and belongs to one long-lived Next.js process. Restarting it invalidates sessions and reconciles rooms with this installation's prefix. Do not deploy this registry on stateless/multiple server instances. Keep the prefix stable and exclusive to the installation.
-- The diagnostic SDK queue holds one waiting frame and the application queue holds one, plus any frame currently being inspected. There is no historical pixel buffer. Reported drops are application-queue drops; SDK/network drops are not included. Worker peak RSS describes the entire daemon, not a per-session allocation.
+- The SDK queue holds one waiting frame and the application queue holds one, plus any frame currently being inspected. When captions are configured and identities confirmed, a separate bounded in-memory JPEG window buffer is enabled; it is not a seekable replay buffer. Reported drops are application-queue drops; SDK/network drops are not included. Caption windows skipped under overload are reported separately. Worker peak RSS describes the entire daemon, not a per-session allocation.
 - Receiver progress uses a monotonic receiver clock. Capture timestamps, shared frame IDs, viewer alignment, and capture-to-display latency are unavailable. No arrival-time estimate is presented as synchronized latency.
 - Browser codec negotiation remains enabled. The received viewer codec is reported when RTC statistics expose it. The Python diagnostic codec field remains `null` because this receiver API does not expose an authoritative codec value.
 - Publication uses one video layer, a 2.5 Mbps / 30 FPS encoding ceiling, and a preference to preserve capture resolution. A constrained browser/network may reduce cadence; always use the actual received FPS and resolution when judging analysis suitability.

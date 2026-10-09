@@ -44,15 +44,15 @@ class CosmosError(RuntimeError):
 class Cosmos:
     def __init__(self, url: Optional[str] = None, model: Optional[str] = None, api_key: Optional[str] = None,
                  timeout_s: float = TIMEOUT_S, max_tokens: int = MAX_TOKENS, retries: int = RETRIES, http: Any = None):
-        url = (url or os.environ.get("COSMOS3_REASON_URL") or "").strip().rstrip("/")
+        url = (url or os.environ.get("COSMOS3_REASON_URL") or os.environ.get("COSMOS_API_BASE") or "").strip().rstrip("/")
         if url.endswith("/v1"):
             url = url[:-3]
         if not url:
             raise CosmosError("No Cosmos endpoint: set COSMOS3_REASON_URL, or pass --url")
         self.url = url
         # None = take it from the environment; "" = this endpoint has nothing to do with those variables
-        self._model = os.environ.get("COSMOS3_REASON_MODEL", "") if model is None else model
-        key = os.environ.get("COSMOS_API_KEY", "") if api_key is None else api_key
+        self._model = (os.environ.get("COSMOS3_REASON_MODEL") or os.environ.get("COSMOS_MODEL", "")) if model is None else model
+        key = (os.environ.get("GPU_BEARER_TOKEN") or os.environ.get("COSMOS_API_KEY", "")) if api_key is None else api_key
         self._headers = {"Authorization": f"Bearer {key}"} if key else {}
         self._timeout_s, self._max_tokens, self._retries = timeout_s, max_tokens, retries
         self._http = http or requests          # anything with .request(method, url, json=, headers=, timeout=)

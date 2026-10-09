@@ -5,7 +5,12 @@ import {
   RoomServiceClient,
   TrackSource,
 } from "livekit-server-sdk";
-import type { Diagnostic, LiveSnapshot } from "@/lib/live/types";
+import type {
+  CaptionFighters,
+  CaptionUpdate,
+  Diagnostic,
+  LiveSnapshot,
+} from "@/lib/live/types";
 
 export class LiveError extends Error {
   constructor(
@@ -38,6 +43,9 @@ export interface Session {
   workerInstance: string | null;
   workerSeen: number;
   paused: boolean;
+  analysisRevision: number;
+  captionFighters: CaptionFighters | null;
+  caption: CaptionUpdate | null;
   cleanupPending: boolean;
   latest: Diagnostic | null;
   updatedAt: number | null;
@@ -169,6 +177,9 @@ export function snapshot(
     workerGeneration: session.workerGeneration,
     workerAvailable: Date.now() - registry.workerSeen < 5000,
     paused: session.paused,
+    analysisRevision: session.analysisRevision,
+    captionFighters: session.captionFighters,
+    caption: session.caption,
     cleanupPending: session.cleanupPending,
     latest: session.latest,
     updatedAt: session.updatedAt,
@@ -202,6 +213,9 @@ export function createSession(device: string, requestId: string) {
     workerInstance: null,
     workerSeen: 0,
     paused: false,
+    analysisRevision: 0,
+    captionFighters: null,
+    caption: null,
     cleanupPending: false,
     latest: null,
     updatedAt: null,

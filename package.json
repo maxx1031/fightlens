@@ -12,7 +12,9 @@
     "live:setup": "node scripts/setup-live.mjs",
     "live:dev": "node scripts/run-live.mjs",
     "live:start": "node scripts/run-live.mjs --production",
-    "live:check": "node scripts/check-live-api.mjs"
+    "live:check": "node scripts/check-live-api.mjs",
+    "captions:test": "uv run --project worker --frozen python -m pytest -q worker/test_captions.py",
+    "captions:check": "node scripts/check-caption-api.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slider": "1.5.0",

@@ -21,6 +21,33 @@ if (!existsSync(".env.local")) {
   );
 }
 process.loadEnvFile(".env.local");
+// A file containing only Cosmos settings must also work with local setup.
+// Preserve explicitly supplied values (including blanks requiring completion).
+const existingEnvironment = readFileSync(".env.local", "utf8");
+const localDefaults = {
+  LIVEKIT_URL: "ws://127.0.0.1:7880",
+  LIVEKIT_API_KEY: `fl${randomBytes(8).toString("hex")}`,
+  LIVEKIT_API_SECRET: fresh(),
+  FIGHTLENS_WORKER_SECRET: fresh(),
+  FIGHTLENS_ROOM_PREFIX: `fightlens-${randomBytes(8).toString("hex")}-`,
+  FIGHTLENS_CONTROL_URL: "http://127.0.0.1:4173",
+};
+const missingDefaults = Object.entries(localDefaults).filter(
+  ([name]) =>
+    !process.env[name] &&
+    !new RegExp(`^\\s*(?:export\\s+)?${name}\\s*=`, "m").test(
+      existingEnvironment,
+    ),
+);
+if (missingDefaults.length) {
+  writeFileSync(
+    ".env.local",
+    `${existingEnvironment.trimEnd()}\n${missingDefaults.map(([name, value]) => `${name}=${value}`).join("\n")}\n`,
+    { mode: 0o600 },
+  );
+  process.loadEnvFile(".env.local");
+}
+chmodSync(".env.local", 0o600);
 if (
   !process.env.LIVEKIT_API_KEY ||
   !process.env.LIVEKIT_API_SECRET ||

@@ -35,12 +35,18 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable, Iterable, Optional
 
-import asks
-import clips
-import narrate
-from cosmos import Cosmos, CosmosError
-from memory import CONTEXT, EXCHANGE, FAILED, Memory
-from windows import CONTEXT_FPS, EXCHANGE_FPS, EXCHANGE_MAX_S, Planner, Window, find_file, grid, plan, read_spans, span_of
+if __package__:
+    from . import asks, clips, narrate
+    from .cosmos import Cosmos, CosmosError
+    from .memory import CONTEXT, EXCHANGE, FAILED, Memory
+    from .windows import CONTEXT_FPS, EXCHANGE_FPS, EXCHANGE_MAX_S, Planner, Window, find_file, grid, plan, read_spans, span_of
+else:
+    import asks
+    import clips
+    import narrate
+    from cosmos import Cosmos, CosmosError
+    from memory import CONTEXT, EXCHANGE, FAILED, Memory
+    from windows import CONTEXT_FPS, EXCHANGE_FPS, EXCHANGE_MAX_S, Planner, Window, find_file, grid, plan, read_spans, span_of
 
 WORKERS = 2              # clips under review at once (ask about rate limits before raising it)
 NOTES_GIVE_UP = 2        # failures in a row after which the notes are left alone for the rest of the run

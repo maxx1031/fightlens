@@ -87,6 +87,15 @@ try {
     403,
   );
   assert.equal((await publisher(`${path}/pairing`, {})).status, 403);
+  assert.equal(
+    (
+      await publisher(`${path}/caption-settings`, {
+        A: "red trunks",
+        B: "blue trunks",
+      })
+    ).status,
+    403,
+  );
   const viewer = await owner(`${path}/join`, { mode: "viewer" });
   assert.equal(viewer.status, 200);
   const decode = (token) =>
