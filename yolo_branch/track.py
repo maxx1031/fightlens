@@ -1,4 +1,4 @@
-"""Track the first ten seconds: python track.py path/to/video.mp4 [video2.mp4]."""
+"""Track the first N seconds (default 10): python track.py [--seconds 25] video.mp4 [video2.mp4]."""
 from pathlib import Path
 import argparse
 import itertools
@@ -216,10 +216,11 @@ def run(video):
             cv2.rectangle(frame, (int(box[0]),int(box[1])), (int(box[2]),int(box[3])), color, 2)
             cv2.putText(frame, f"{label}  id={entry['track_id']}",
                         (int(box[0]),max(28,int(box[1])-10)), cv2.FONT_HERSHEY_SIMPLEX, 0.8,color,2)
-        cv2.putText(frame, f"{row['t']:.2f}s", (20,35), cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,255,255),2)
         writer.write(frame)
         if i % max(1,round(fps*REVIEW_INTERVAL_SECONDS)) == 0:
-            review.append(cv2.resize(frame,(480,270)))
+            tile = frame.copy()  # timestamp only on review sheets, not in the video
+            cv2.putText(tile, f"{row['t']:.2f}s", (20,35), cv2.FONT_HERSHEY_SIMPLEX,0.8,(255,255,255),2)
+            review.append(cv2.resize(tile,(480,270)))
     cap.release()
     writer.release()
     ffmpeg = shutil.which("ffmpeg")
@@ -252,6 +253,8 @@ def run(video):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("videos",type=Path,nargs="+")
+    parser.add_argument("--seconds",type=float,default=MAX_SECONDS)
     args = parser.parse_args()
+    MAX_SECONDS = args.seconds
     for video in args.videos:
         run(video)

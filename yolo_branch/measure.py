@@ -11,7 +11,7 @@ numbers do not change when the camera zooms):
   ext_A/B    arm extension of the more extended arm: wrist-shoulder distance divided
              by upper-arm + forearm length (1.0 = fully straight)
 
-Writes measure.jsonl, measure.png and measure.mp4 (annotated.mp4 with the
+Writes measure.jsonl and measure.mp4 (annotated.mp4 with the
 distances drawn on) into the clip folder.
 """
 from pathlib import Path
@@ -26,7 +26,7 @@ import numpy as np
 
 warnings.filterwarnings("ignore", "All-NaN slice")
 
-from engage import SMOOTH_FRAMES, find_cuts, interp_short, load, trailing_mean
+from engage import SMOOTH_FRAMES, find_cuts, guard, interp_short, load, torso_scale, trailing_mean
 
 SHOULDERS, ELBOWS, WRISTS, HIPS, NOSE = (5, 6), (7, 8), (9, 10), (11, 12), 0
 COLORS = {"A": (0, 180, 255), "B": (255, 160, 30)}  # BGR, same as track.py
@@ -43,8 +43,7 @@ def measure(kp, fps, cuts):
     com = point_mean(kp, SHOULDERS + HIPS)                     # (n, 2, 2)
     torso_c = com
     torso_len = np.linalg.norm(point_mean(kp, SHOULDERS) - point_mean(kp, HIPS), axis=-1)
-    scale = np.nanmedian(np.where(np.isnan(torso_len), np.nan, torso_len), axis=1)
-    scale = trailing_mean(interp_short(scale, fps), int(fps))   # steady scale over ~1 s
+    scale = torso_scale(np.nanmedian(torso_len, axis=1), fps, cuts)
 
     out = {"com_dist": np.linalg.norm(com[:, 0] - com[:, 1], axis=-1) / scale}
     best_pair = np.full((n, 2, 2, 2), np.nan)                   # wrist -> target segment per fighter
@@ -69,37 +68,8 @@ def measure(kp, fps, cuts):
         out[f"ext_{name}"] = ext
 
     for key in out:  # same light smoothing as engage.py, no smoothing across cuts
-        x = out[key].copy()
-        for c in cuts:
-            x[max(0, c - 1):c + 1] = np.nan
-        out[key] = trailing_mean(interp_short(x, fps), SMOOTH_FRAMES)
+        out[key] = trailing_mean(interp_short(guard(out[key], cuts), fps), SMOOTH_FRAMES)
     return out, com, best_pair
-
-
-def plot(t, m, cuts, path):
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    a_col, b_col = "#ffb400", "#1ea0ff"
-    fig, axes = plt.subplots(3, 1, figsize=(12, 7), sharex=True)
-    axes[0].plot(t, m["com_dist"], color="#2a9d2a", lw=1.5)
-    axes[0].set_ylabel("centre of gravity\ndistance (torso)")
-    axes[1].plot(t, m["reach_A"], color=a_col, lw=1.3, label="A wrist → B")
-    axes[1].plot(t, m["reach_B"], color=b_col, lw=1.3, label="B wrist → A")
-    axes[1].set_ylabel("wrist to opponent\nhead/torso (torso)")
-    axes[1].legend(loc="upper right", fontsize=8)
-    axes[2].plot(t, m["ext_A"], color=a_col, lw=1.3, label="A")
-    axes[2].plot(t, m["ext_B"], color=b_col, lw=1.3, label="B")
-    axes[2].axhline(0.9, color="#666", ls="--", lw=0.8)
-    axes[2].set_ylabel("arm extension\n(1 = straight)")
-    axes[2].legend(loc="upper right", fontsize=8)
-    axes[-1].set_xlabel("video time (s)")
-    for ax in axes:
-        for c in cuts:
-            ax.axvline(t[c], color="#7a3cff", lw=1)
-        ax.grid(alpha=0.3)
-    fig.tight_layout()
-    fig.savefig(path, dpi=120)
 
 
 def overlay(clip_dir, m, com, pairs):
@@ -149,7 +119,6 @@ def overlay(clip_dir, m, com, pairs):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("clip_dir")
-    ap.add_argument("--no-open", action="store_true")
     args = ap.parse_args()
     clip_dir = Path(args.clip_dir)
     t, kp = load(clip_dir / "keypoints.jsonl")
@@ -162,8 +131,7 @@ def main():
         for i in range(len(t)):
             f.write(json.dumps({"t": round(float(t[i]), 3),
                                 **{k: (None if np.isnan(v[i]) else round(float(v[i]), 3)) for k, v in m.items()}}) + "\n")
-    plot(t, m, cuts, clip_dir / "measure.png")
-    video = overlay(clip_dir, m, com, pairs)
+    overlay(clip_dir, m, com, pairs)
 
     def stat(k):
         x = m[k][~np.isnan(m[k])]
@@ -171,8 +139,6 @@ def main():
     print(f"{clip_dir.name}: {len(t)} frames, camera cuts: {len(cuts)}")
     for k in m:
         print(f"  {k:9s} {stat(k)}")
-    if not args.no_open:
-        subprocess.run(["open", str(clip_dir / "measure.png"), str(video)])
 
 
 if __name__ == "__main__":
