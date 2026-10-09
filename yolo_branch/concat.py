@@ -17,6 +17,7 @@ segments have them) labels_eyeball.json into the output folder.
 If a segment has win_prob.jsonl (win_prob.py), each frame gets win_A: the
 latest probability for A whose one-second window had ended by that frame,
 null before the round's first result. Decision times go to win_points.json.
+Strikes from hits.jsonl (hits.py) are shifted onto the joined timeline in hits.json.
 """
 from pathlib import Path
 import argparse
@@ -59,13 +60,19 @@ def main():
 
     # Data: resample each segment onto the joined 30 fps grid (nearest frame).
     measure_rows, exchange_rows, segments, cuts, labels, label_ranges = [], [], [], [], [], []
-    win_points = []
+    win_points, hits = [], []
     offset = 0.0
     for clip, start, end, names in segs:
         m = [json.loads(line) for line in (clip / "measure.jsonl").open()]
         x = [json.loads(line) for line in (clip / "exchange.jsonl").open()]
         src_t = np.array([r["t"] for r in m])
         n = int(round((end - start) * FPS))
+        hit_file = clip / "hits.jsonl"
+        if hit_file.exists():
+            for line in hit_file.open():
+                h = json.loads(line)
+                if start <= h["t"] < end:
+                    hits.append({**h, "t": round(offset + h["t"] - start, 3)})
         wp_file = clip / "win_prob.jsonl"
         wins = [json.loads(line) for line in wp_file.open()] if wp_file.exists() else []
         wins = [w for w in wins if w.get("probabilities") and start < w["end_s"] <= end]
@@ -100,6 +107,7 @@ def main():
     with (out / "exchange.jsonl").open("w") as f:
         f.writelines(json.dumps(r) + "\n" for r in exchange_rows)
     (out / "win_points.json").write_text(json.dumps(win_points))
+    (out / "hits.json").write_text(json.dumps(hits))
     (out / "segments.json").write_text(json.dumps(segments, ensure_ascii=False, indent=2))
     (out / "summary.json").write_text(json.dumps(
         {"source_fps": FPS, "video": str((out / "measure.mp4").resolve()), "cuts_s": sorted(cuts)}, indent=2))

@@ -30,6 +30,7 @@ tmp/
 *.mp4
 !examples/fightlens-mock-demo.mp4
 !examples/arcade/measure.mp4
+!docs/demo/*.mp4
 *.mov
 *.mkv
 *.avi

@@ -9,7 +9,7 @@ Writes into the arcade folder:
 
 Needs measure.mp4, measure.jsonl and exchange.jsonl in the clip folder
 (concat.py produces them), plus summary.json for the frame rate and cuts.
-segments.json, labels_eyeball.json and win_points.json are used when present;
+segments.json, labels_eyeball.json, win_points.json and hits.json are used when present;
 win_A comes from exchange.jsonl (null where no win probability exists).
 """
 from pathlib import Path
@@ -47,6 +47,8 @@ def main():
         data["win_A"].append(r.get("win_A"))
     points = clip_dir / "win_points.json"
     data["win_points"] = json.loads(points.read_text()) if points.exists() else []
+    hits = clip_dir / "hits.json"
+    data["hits"] = json.loads(hits.read_text()) if hits.exists() else []
 
     seg_file = clip_dir / "segments.json"
     data["segments"] = (json.loads(seg_file.read_text()) if seg_file.exists()

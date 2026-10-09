@@ -6,6 +6,21 @@ FightLens is a real-time MMA viewing agent being built to recognize fight action
 
 Built for the Real-Time Video Agents Hack — NYC, October 9, 2026.
 
+![FightLens arcade HUD: win probability bar, YOLO pose replay, latest exchange and exchange log, win-probability curve over the round, and strikes-taken heatmaps](docs/images/arcade-hud.png)
+
+*FightLens arcade HUD: win probability, YOLO pose replay, exchange log, and strikes-taken heatmap. See [examples/arcade](examples/arcade/README.md).*
+
+### Demo videos
+
+Click a preview to open the full recording; GitHub plays it in the file view.
+
+| Demo 1 (53 s) | Demo 2 (51 s) |
+| --- | --- |
+| [![Demo 1 preview: arcade HUD replaying the local sparring round with win probability, engagement status and strikes-taken heatmap](docs/demo/demo1-preview.gif)](docs/demo/demo1.mp4) | [![Demo 2 preview: arcade HUD switching between the audience view and the data console](docs/demo/demo2-preview.gif)](docs/demo/demo2.mp4) |
+| [▶ Play demo 1](docs/demo/demo1.mp4) | [▶ Play demo 2](docs/demo/demo2.mp4) |
+
+Screen recordings of the offline arcade replay (precomputed YOLO measurements and Luna Decisions estimates), 1920×972, 30 fps, no audio.
+
 ## Why FightLens
 
 During a fast exchange, a viewer has only a moment to decide: did that punch land, was it blocked, and who now has the advantage?
