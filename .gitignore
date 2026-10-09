@@ -26,6 +26,7 @@ models/
 runs/
 wandb/
 artifacts/
+tmp/
 *.mp4
 !examples/fightlens-mock-demo.mp4
 !examples/arcade/measure.mp4

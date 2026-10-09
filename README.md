@@ -191,10 +191,128 @@ These entries describe intended integrations, not completed integrations or conf
 - [ ] Build the heatmap, event list, and evidence replay interface.
 - [ ] Record a three-minute project demo and make the repository accessible to reviewers.
 
+## Cosmos per-second video understanding smoke test
+
+`scripts/cosmos_video_understanding.py` implements the first end-to-end model path:
+
+1. Split the input into complete one-second windows.
+2. Sample five ordered JPEG frames at `+0.1`, `+0.3`, `+0.5`, `+0.7`, and `+0.9` seconds.
+3. Send the fixed UFC scene-observer system prompt and one Cosmos3 Reason request per
+   source-video second using NVIDIA NIM's temporal `video_frames` input.
+4. Pass the previous successful second's complete scene JSON back as `previous_state`.
+5. Append the structured scene result, raw model text, latency, usage, and any error to JSONL.
+
+Run this inside the VAST Builders Challenge workshop VM, or locally after securely exporting
+the Team bearer token. The VM's single `/config/<team>.config` contains
+`GPU_BEARER_TOKEN`; the script reads that file without printing its values. It defaults to the
+workshop Cosmos endpoint `http://166.19.38.112:8001`. `--api-base`,
+`COSMOS3_REASON_URL`, or `COSMOS_API_BASE` can override that endpoint. Do not copy the bearer
+token into source control. The workshop endpoint uses plain HTTP, so local calls expose the
+bearer token and video frames to the network path; use it only from a trusted network.
+
+First check local sampling without contacting Cosmos:
+
+```sh
+python3 scripts/cosmos_video_understanding.py \
+  videos/pereira_rountree_45s.mp4 \
+  --max-windows 1 \
+  --dry-run
+```
+
+Then verify the workshop endpoint and discover its current model ID:
+
+```sh
+python3 scripts/cosmos_video_understanding.py --check
+```
+
+Run a single one-second inference before increasing the request count:
+
+```sh
+python3 scripts/cosmos_video_understanding.py \
+  /path/to/permitted-test-video.mp4 \
+  --fighter-map '{"A":"fixed identity or appearance","B":"fixed identity or appearance"}' \
+  --max-windows 1
+```
+
+`--fighter-map` accepts inline JSON or `@/path/to/fighters.json`. It must contain exactly
+the keys `A` and `B`; each value may be a non-empty string or JSON object. It is required for
+inference so the model cannot silently reassign A/B based on screen position. The first
+analyzed window receives `previous_state: null`; each later window receives the complete scene
+JSON from the immediately preceding successful window.
+
+Results default to `runs/cosmos/<video-stem>.jsonl`. Re-running resumes the file and skips only
+the contiguous successful prefix whose video, model, fixed system prompt, fighter map, and
+sampling configuration match the current run. This preserves the `previous_state` chain. Pass
+`--overwrite` to start over. Non-JSON model output is stored as `invalid_response` and is retried
+on a later run.
+`--realtime` paces request starts at one per source second when inference latency allows it.
+Shared workshop GPUs may take longer than one second or return `429`; the client runs serially
+and retries `429`, `5xx`, timeouts, and transient connection failures with backoff.
+The client validates the fixed JSON schema and stops at the first failed window so it never
+feeds a non-adjacent or malformed state into the next second.
+Each successful one-second scene is also emitted immediately as one compact JSON line on
+standard output; progress and errors stay on standard error, while the full records continue
+to be persisted in the JSONL output file.
+
+The default `--media-mode auto` uses `video_frames`. If the workshop wrapper rejects that
+NIM 1.7 input type, the same five frames are encoded as a one-second 5 FPS MP4 and retried as
+`video_url` with `num_frames=5`.
+
+For a local non-workshop NIM, copy `.env.example` to `.env` and fill the endpoint credentials.
+Never commit `.env`. Run tests with:
+
+```sh
+python3 -m unittest discover -s tests -v
+```
+
+## OpenRouter per-second win-probability demo
+
+`scripts/openrouter_win_probability.py` reuses the same sampling path, sends five ordered
+frames for each complete video second to OpenRouter's Decisions API, and asks
+`openai/gpt-6-luna-decisions` for a typed A/B choice. The two values in
+`answers.winner.probabilities` are used directly, so this path does not ask a chat model to
+invent or format a probability JSON response. The previous successful result is included as
+context for the next source-video second.
+
+Keep the API key in the current shell, never in a command saved to the repository:
+
+```sh
+export OPENROUTER_API_KEY='replace-with-your-openrouter-key'
+```
+
+Alternatively, copy `.env.example` to the ignored `.env` file and set
+`OPENROUTER_API_KEY` there; the script loads that local file automatically.
+
+Run a three-second local demo:
+
+```sh
+python3 scripts/openrouter_win_probability.py \
+  videos/pereira_rountree_45s.mp4 \
+  --fighter-map '{"A":{"name":"Alex Pereira"},"B":{"name":"Khalil Rountree Jr."}}' \
+  --max-windows 3 \
+  --realtime \
+  --output runs/openrouter/pereira_demo_3s.jsonl \
+  --overwrite
+```
+
+Each successful second is printed immediately as one compact JSON line. Detailed records,
+including source timestamps, latency, usage, and prompt hash, are appended to the output
+JSONL; API keys and encoded frames are not persisted. To replace the probability rubric, use
+`--prompt '...'` or `--prompt-file /path/to/prompt.txt`. The built-in rubric considers only
+visible offense, control, takedown/get-up results, submission threats, defense, and visible
+clock context, while excluding fame, records, odds, known results, and invisible conditions.
+
+`--realtime` prevents a fast request from starting before its source second is due. Requests
+remain serial so `previous_state` stays contiguous; if a model call takes longer than one
+second, this smoke-test path cannot maintain one wall-clock request per second. These outputs
+are uncalibrated model estimates. A famous archived fight with real names can also leak the
+known result through model memory, so use unseen footage or identity-neutral appearance
+descriptions when evaluating whether probabilities come only from visual evidence.
+
 ## References
 
 - [Hackathon page](https://tokensand.com/vastnyc)
 - [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/)
 - [Ultralytics tracking](https://docs.ultralytics.com/modes/track/)
-- [Cosmos Reason2 NIM API](https://docs.nvidia.com/nim/vision-language-models/1.6.0/examples/cosmos-reason2/api.html)
+- [Cosmos 3 Reasoner NIM 1.7 API](https://docs.nvidia.com/nim/vision-language-models/1.7.0/examples/cosmos-reason3/api.html)
 - [TapStats product preview](https://www.tapstats.live/app-tour) — a reference for spectator interaction; its preview describes manual crowd-sourced strike input.
