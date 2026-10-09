@@ -80,3 +80,23 @@ verification used a file-backed synthetic camera and real local WebRTC/YOLO:
 
 Ignored screenshots: `output/playwright/camera-setup-desktop.png`,
 `camera-setup-mobile.png`, `yolo-only-desktop.png`, and `yolo-only-mobile.png`.
+
+## Embedded-browser connection compatibility
+
+October 9, 2026. The Codex embedded browser failed during LiveKit's default
+single-peer-connection handshake with `setConfiguration` / unsupported
+configuration modification. Explicit bundle/mux/pool settings did not resolve
+it. Publisher and viewer now select the SDK's supported dual-peer-connection
+mode (`singlePeerConnection: false`), avoiding the initial offer-with-join
+configuration update.
+
+After rebuilding and restarting the production stack, the MacBook Air camera
+in that same browser reached **Publishing**, **Receiving video**, and
+**Backend receiving frames**. Returned video decoded at 1280×720 / VP8, and
+YOLO analyzed-frame counts increased. No fighter identities were confirmed in
+this camera check, so no camera frames were submitted for model judgments.
+Cosmos and Decisions endpoints in this preview were local fixtures.
+
+Production build, TypeScript, and whitespace checks passed. This verifies local
+physical-camera startup and video return in one embedded browser; it does not
+establish phone/WAN behavior, reconnect acceptance, or capture latency.

@@ -213,7 +213,12 @@ export function CameraPublisher({
     setError("");
     setStatus("Connecting…");
     const generation = ++operation.current;
-    const connection = new Room({ adaptiveStream: false, dynacast: false });
+    const connection = new Room({
+      adaptiveStream: false,
+      dynacast: false,
+      // The embedded browser rejects the single-PC offer-with-join config update.
+      singlePeerConnection: false,
+    });
     room.current = connection;
     connection.on(RoomEvent.Reconnecting, () => {
       setStatus("Reconnecting…");

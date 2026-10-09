@@ -225,6 +225,7 @@ export function LiveSession({ id }: { id: string }) {
         room = new Room({
           adaptiveStream: false,
           dynacast: false,
+          singlePeerConnection: false,
           ...(metadataWorker
             ? { frameMetadata: { worker: metadataWorker } }
             : {}),

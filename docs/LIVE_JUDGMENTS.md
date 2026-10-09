@@ -50,4 +50,31 @@ pnpm typecheck
 FIGHTLENS_TEST_URL=http://127.0.0.1:4393 pnpm judgments:check
 ```
 
-Tests cover evidence boundaries, bounded backlog, cancellation on identity/source/analysis changes, expired leases, safe HTTP failures, malformed distributions, deduplication, revisions, gaps, and late-result timing. Local fixture HTTP/API/browser checks establish integration behavior; predictive quality, real-provider multimodal compatibility and latency, and physical-camera end-to-end acceptance need separate validation. No calibrated numeric momentum policy is included.
+Tests cover evidence boundaries, bounded backlog, cancellation on identity/source/analysis changes, expired leases, safe HTTP failures, malformed distributions, deduplication, revisions, gaps, and late-result timing. No calibrated numeric momentum policy is included.
+
+### October 9, 2026 local runtime checks
+
+A recorded-footage camera fixture exercised the actual browser → LiveKit → YOLO
+→ JPEG window → local Decisions HTTP fixture → authenticated internal API →
+live curve path. A controlled eight-second loop retained moving footage at the
+start and froze its final frame to allow short exchanges to close; this is an
+edited integration fixture, not natural-fight quality validation. Over 39.2
+seconds the returned video advanced, 579 additional frames were analyzed, and
+six judgments displayed A advantage, B advantage, and balanced states.
+
+Pausing during assessment advanced video while adding zero analyzed frames or
+new judgments; resume accepted fresh results in a new analysis revision.
+Changing appearance descriptions cleared judgments/history while YOLO kept
+processing. Ending the test released video and the single live-session slot.
+An uncontrolled footage loop with unstable identities correctly withheld
+provider requests.
+
+A separate, single real OpenRouter request used the shipped `LiveDecisions`
+client with ten timestamped JPEGs from the recorded test footage and
+`cloudflare/clef-flash`. HTTP 200 returned valid typed distributions for both
+questions in 2,562 ms including the local test proxy. Both answers selected
+`insufficient_evidence`. This confirms one multimodal provider request and
+strict response parsing, not real-provider browser-to-curve acceptance,
+predictive accuracy, or a latency percentile. The user's live camera was not
+used for this provider check. Physical-camera startup/video return is recorded
+in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md).
