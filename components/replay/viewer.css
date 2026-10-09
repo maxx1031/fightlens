@@ -1,0 +1,1309 @@
+/* Layout and interaction styles; global colors inherit shadcn's neutral theme. */
+.fight-replay .viewer-shell {
+  font-family: "Geist Variable", Arial, Helvetica, sans-serif;
+  margin: 0;
+}
+.fight-replay button,
+.fight-replay a,
+.fight-replay input,
+.fight-replay select,
+.fight-replay summary {
+  -webkit-tap-highlight-color: transparent;
+}
+.fight-replay button,
+.fight-replay summary {
+  cursor: pointer;
+}
+.fight-replay button:focus-visible,
+.fight-replay a:focus-visible,
+.fight-replay summary:focus-visible,
+.fight-replay input:focus-visible,
+.fight-replay select:focus-visible,
+.fight-replay [role="slider"]:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 4px;
+}
+.fight-replay button:disabled {
+  cursor: not-allowed;
+}
+.fight-replay .viewer-shell {
+  min-height: 100vh;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+.fight-replay .site-header {
+  height: 74px;
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 0 max(24px, calc((100vw - 1320px) / 2));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.fight-replay .brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 18px;
+  letter-spacing: -0.6px;
+  font-weight: 650;
+  text-decoration: none;
+  color: inherit;
+}
+.fight-replay .brand-icon {
+  display: grid;
+  place-items: center;
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  width: 33px;
+  height: 33px;
+  border-radius: 9px;
+}
+.fight-replay .brand > span:last-child {
+  display: flex;
+  align-items: center;
+}
+.fight-replay .brand-divider {
+  height: 17px;
+  width: 1px;
+  background: hsl(var(--border));
+  margin: 0 17px;
+}
+.fight-replay .brand-description {
+  font-size: 12px;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.fight-replay .review-badge {
+  gap: 7px;
+  font-weight: 400;
+}
+.fight-replay .status-dot {
+  width: 5px;
+  height: 5px;
+  display: inline-block;
+  border-radius: 100%;
+  background: hsl(var(--muted-foreground));
+}
+.fight-replay .help-menu {
+  position: relative;
+  z-index: 20;
+}
+.fight-replay .help-menu summary {
+  list-style: none;
+  color: hsl(var(--muted-foreground));
+  padding: 8px;
+}
+.fight-replay .help-menu summary::-webkit-details-marker {
+  display: none;
+}
+.fight-replay .help-popover {
+  position: absolute;
+  right: 0;
+  top: 39px;
+  width: min(340px, calc(100vw - 32px));
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: 0 12px 35px #0003;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.fight-replay .help-popover p {
+  color: hsl(var(--muted-foreground));
+  margin-top: 10px;
+}
+.fight-replay .viewer-main {
+  max-width: 1320px;
+  margin: auto;
+  padding: 35px 24px 0;
+}
+.fight-replay .page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 29px;
+}
+.fight-replay .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 1.55px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .eyebrow-separator {
+  margin: 0 2px;
+  opacity: 0.5;
+}
+.fight-replay .page-heading h1 {
+  font-size: 27px;
+  font-weight: 550;
+  letter-spacing: -1.1px;
+  margin: 10px 0 7px;
+  line-height: 1.25;
+}
+.fight-replay .page-heading p {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .session-meta {
+  display: flex;
+  gap: 12px;
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  padding-bottom: 3px;
+}
+.fight-replay .session-meta span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fight-replay .session-meta span + span {
+  border-left: 1px solid hsl(var(--border));
+  padding-left: 12px;
+}
+.fight-replay .fight-strip {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 0 23px;
+  margin-bottom: 21px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.fight-replay .fighter-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fight-replay .fighter-summary.right {
+  justify-content: flex-end;
+  text-align: right;
+}
+.fight-replay .fighter-token {
+  width: 35px;
+  height: 35px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  font-weight: 500;
+  font-size: 14px;
+}
+.fight-replay .fighter-a {
+  color: #e89574;
+  background: #e8957410;
+}
+.fight-replay .fighter-b {
+  color: #769fdd;
+  background: #769fdd10;
+}
+.fight-replay .fighter-summary strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 550;
+  letter-spacing: -0.2px;
+}
+.fight-replay .fighter-summary div > span {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .round-summary {
+  text-align: center;
+}
+.fight-replay .round-summary > span {
+  font-size: 8px;
+  color: hsl(var(--muted-foreground));
+  letter-spacing: 1.5px;
+}
+.fight-replay .round-summary > strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  margin-top: 5px;
+}
+.fight-replay .round-summary strong span {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
+}
+.fight-replay .main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.52fr) minmax(0, 1fr);
+  gap: 20px;
+}
+.fight-replay .video-column,
+.fight-replay .analysis-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.fight-replay .video-card,
+.fight-replay .market-card,
+.fight-replay .impact-card,
+.fight-replay .exchange-card,
+.fight-replay .events-card {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  box-shadow: none;
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+}
+.fight-replay .card-topline {
+  height: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 17px;
+  font-size: 11px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.fight-replay .card-topline > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fight-replay .video-surface {
+  position: relative;
+  background: #090909;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+.fight-replay .video-surface video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.fight-replay .video-top-badge {
+  position: absolute;
+  left: 13px;
+  top: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #e2e2e2;
+  background: #111b;
+  border: 1px solid #ffffff28;
+  border-radius: 5px;
+  padding: 4px 7px;
+  font-size: 9px;
+  backdrop-filter: blur(8px);
+}
+.fight-replay .video-bottom-caption {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 8px;
+  letter-spacing: 1.2px;
+  color: #efefef;
+  text-shadow: 0 1px 3px #000;
+  background: #0006;
+  padding: 5px 8px;
+  border-radius: 4px;
+}
+.fight-replay .video-bottom-caption > span:last-child {
+  color: #bbb;
+  padding-left: 9px;
+  margin-left: 2px;
+  border-left: 1px solid #ffffff40;
+}
+.fight-replay .record-dot {
+  width: 4px;
+  height: 4px;
+  background: #e8e8e8;
+  border-radius: 50%;
+}
+.fight-replay .transport {
+  padding: 15px 13px 7px;
+}
+.fight-replay .seek-wrap {
+  position: relative;
+  padding: 0 3px;
+  height: 20px;
+  display: flex;
+  align-items: flex-start;
+}
+.fight-replay .seek-wrap input {
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  border-radius: 99px;
+  background: linear-gradient(
+    to right,
+    hsl(var(--foreground)) var(--progress),
+    hsl(var(--muted)) var(--progress)
+  );
+  cursor: pointer;
+  outline-offset: 6px;
+  margin: 0;
+}
+.fight-replay .seek-wrap input::-webkit-slider-thumb {
+  appearance: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: hsl(var(--foreground));
+  border: 2px solid hsl(var(--card));
+}
+.fight-replay .seek-wrap input::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: hsl(var(--foreground));
+  border: 2px solid hsl(var(--card));
+}
+.fight-replay .event-markers {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  top: 7px;
+  height: 13px;
+  pointer-events: none;
+}
+.fight-replay .event-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 13px;
+  pointer-events: auto;
+  background: transparent;
+  border: 0;
+}
+.fight-replay .event-marker:after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: hsl(var(--muted-foreground));
+  opacity: 0.4;
+}
+.fight-replay .event-marker.past:after {
+  background: #e89574;
+  opacity: 1;
+}
+.fight-replay .event-marker.block-marker.past:after {
+  background: #769fdd;
+}
+.fight-replay .transport-buttons,
+.fight-replay .transport-buttons > div {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.fight-replay .transport-buttons {
+  justify-content: space-between;
+}
+.fight-replay .transport-buttons button {
+  width: 30px;
+  height: 30px;
+}
+.fight-replay .timecode {
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  display: block;
+  margin-left: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.fight-replay .timecode span {
+  color: hsl(var(--muted-foreground));
+  margin-left: 3px;
+}
+.fight-replay .speed-select {
+  background: transparent;
+  border: 0;
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+  padding: 5px;
+  min-width: 48px;
+}
+.fight-replay .speed-select option {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+.fight-replay .card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 18px 19px 0;
+}
+.fight-replay .card-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fight-replay .card-heading h2,
+.fight-replay .events-heading h2 {
+  font-size: 13px;
+  font-weight: 550;
+  letter-spacing: -0.15px;
+  margin: 0;
+}
+.fight-replay .section-icon {
+  color: hsl(var(--muted-foreground));
+  display: flex;
+}
+.fight-replay .card-heading [data-slot="badge"],
+.fight-replay .card-topline [data-slot="badge"] {
+  font-size: 9px;
+  font-weight: 400;
+  padding: 2px 7px;
+}
+.fight-replay .card-description {
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+  margin: 6px 19px 0;
+}
+.fight-replay .mirrors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 17px 15px 0;
+  gap: 0;
+}
+.fight-replay .mirror {
+  min-width: 0;
+  padding: 0 13px;
+}
+.fight-replay .mirror + .mirror {
+  border-left: 1px solid hsl(var(--border));
+}
+.fight-replay .mirror-identity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.fight-replay .mirror-identity strong {
+  font-size: 11px;
+  font-weight: 500;
+}
+.fight-replay .tiny-fighter {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  border: 1px solid currentColor;
+  flex-shrink: 0;
+}
+.fight-replay .received-label {
+  text-align: center;
+  font-size: 8px;
+  color: hsl(var(--muted-foreground));
+  margin-top: 5px;
+}
+.fight-replay .avatar-stage {
+  height: 245px;
+  width: 100%;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+.fight-replay .avatar-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.fight-replay .avatar-fallback {
+  width: 100%;
+  height: 100%;
+}
+.fight-replay .body-zone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.fight-replay .body-zone {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: 9px;
+  text-align: left;
+  border-radius: 4px;
+}
+.fight-replay .body-zone:hover,
+.fight-replay .body-zone.selected {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+.fight-replay .body-zone > span:first-child {
+  width: 30px;
+}
+.fight-replay .heat-track {
+  height: 3px;
+  border-radius: 2px;
+  background: hsl(var(--muted));
+  flex: 1;
+  overflow: hidden;
+}
+.fight-replay .heat-track i {
+  display: block;
+  height: 100%;
+  background: #dcaa91;
+  border-radius: 2px;
+}
+.fight-replay .body-zone strong {
+  color: hsl(var(--foreground));
+  font-variant-numeric: tabular-nums;
+  width: 9px;
+  text-align: right;
+  font-weight: 500;
+}
+.fight-replay .mirror-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 11px;
+  border-top: 1px solid hsl(var(--border));
+  font-size: 8px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .mirror-total span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.fight-replay .impact-legend {
+  border-top: 1px solid hsl(var(--border));
+  margin: 19px 19px 0;
+  padding-top: 13px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  font-size: 8px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .impact-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.fight-replay .contact-swatch {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #dcaa91;
+}
+.fight-replay .heat-scale {
+  margin-left: auto;
+  white-space: nowrap;
+}
+.fight-replay .heat-scale i {
+  display: block;
+  width: 37px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, #b7bbc4, #e7a386);
+}
+.fight-replay .impact-note {
+  font-size: 8px;
+  line-height: 1.6;
+  color: hsl(var(--muted-foreground));
+  margin: 9px 19px 16px;
+}
+.fight-replay .exchange-card {
+  flex: 1;
+  padding-bottom: 18px;
+}
+.fight-replay .small-label {
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+.fight-replay .exchange-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 19px 11px;
+}
+.fight-replay .exchange-title h3 {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+.fight-replay .outcome-badge {
+  display: flex;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 400;
+}
+.fight-replay .outcome-badge.landed,
+.fight-replay .event-result.landed {
+  color: #deab8d;
+}
+.fight-replay .outcome-badge.blocked,
+.fight-replay .event-result.blocked {
+  color: #90b5e6;
+}
+.fight-replay .exchange-direction {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+  margin: 0 19px;
+}
+.fight-replay .detail-divider {
+  height: 11px;
+  width: 1px;
+  background: hsl(var(--border));
+  margin: 0 4px;
+}
+.fight-replay .exchange-observation {
+  font-size: 11px;
+  line-height: 1.7;
+  color: hsl(var(--muted-foreground));
+  margin: 14px 19px 16px;
+  max-width: 42ch;
+}
+.fight-replay .replay-button {
+  margin: 0 19px;
+  font-size: 10px !important;
+  gap: 8px !important;
+  min-height: 31px !important;
+}
+.fight-replay .empty-exchange {
+  padding: 27px 19px;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+}
+.fight-replay .empty-exchange p {
+  color: hsl(var(--foreground));
+  margin: 9px 0 6px;
+}
+.fight-replay .empty-exchange span {
+  font-size: 10px;
+}
+.fight-replay .market-question {
+  padding: 15px 19px 0;
+  font-size: 12px;
+}
+.fight-replay .market-question > span {
+  display: block;
+  margin-top: 5px;
+  color: hsl(var(--muted-foreground));
+  font-size: 9px;
+}
+.fight-replay .quote-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 17px 19px 8px;
+}
+.fight-replay .quote-item + .quote-item {
+  border-left: 1px solid hsl(var(--border));
+  padding-left: 25px;
+}
+.fight-replay .quote-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .quote-value {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-size: 33px;
+  letter-spacing: -1.6px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  margin-top: 4px;
+}
+.fight-replay .quote-value > span:first-child {
+  font-size: 18px;
+  color: hsl(var(--muted-foreground));
+  letter-spacing: -0.6px;
+}
+.fight-replay .quote-value .quote-change {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0;
+  margin-left: 10px;
+}
+.fight-replay .quote-change.positive {
+  color: #8db7a2;
+}
+.fight-replay .quote-change.negative {
+  color: #c9988c;
+}
+.fight-replay .quote-price {
+  font-size: 9px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .market-chart {
+  margin: 11px 14px 0;
+  cursor: crosshair;
+  touch-action: pan-y;
+  border-radius: 4px;
+}
+.fight-replay .market-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.fight-replay .chart-grid {
+  stroke: hsl(var(--border));
+  stroke-width: 1;
+}
+.fight-replay .chart-label {
+  fill: hsl(var(--muted-foreground));
+  font-size: 9px;
+  font-family: Arial, sans-serif;
+}
+.fight-replay .chart-cursor {
+  stroke: hsl(var(--muted-foreground));
+  opacity: 0.5;
+}
+.fight-replay .chart-point {
+  stroke: hsl(var(--card));
+  stroke-width: 2;
+}
+.fight-replay .market-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid hsl(var(--border));
+  padding: 11px 19px;
+  color: hsl(var(--muted-foreground));
+  font-size: 8px;
+}
+.fight-replay .chart-range {
+  display: flex;
+  gap: 3px;
+}
+.fight-replay .chart-range button {
+  border: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border-radius: 4px;
+  font-size: 8px;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+.fight-replay .chart-range .active {
+  background: hsl(var(--secondary));
+  color: hsl(var(--foreground));
+}
+.fight-replay .events-card {
+  margin-top: 23px;
+}
+.fight-replay .events-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 18px 19px;
+}
+.fight-replay .events-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.fight-replay .events-heading > div > span {
+  font-size: 9px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .text-separator {
+  margin: 0 7px;
+}
+.fight-replay .events-heading [data-slot="badge"],
+.fight-replay .events-heading button {
+  font-size: 9px;
+  font-weight: 400;
+}
+.fight-replay .event-table-header,
+.fight-replay .event-row {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) 150px 115px 16px;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 19px;
+}
+.fight-replay .event-table-header {
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: hsl(var(--muted-foreground));
+  border-top: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
+  background: color-mix(in oklab, hsl(var(--muted)) 25%, transparent);
+}
+.fight-replay .event-list {
+  max-height: 252px;
+  overflow: auto;
+}
+.fight-replay .event-row {
+  border: 0;
+  border-bottom: 1px solid hsl(var(--border));
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  color: hsl(var(--foreground));
+  min-height: 62px;
+}
+.fight-replay .event-row:last-child {
+  border-bottom: 0;
+}
+.fight-replay .event-row:hover,
+.fight-replay .event-row.selected {
+  background: hsl(var(--accent));
+}
+.fight-replay .event-time {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .event-time small {
+  font-size: 9px;
+  margin-left: 2px;
+  opacity: 0.7;
+}
+.fight-replay .event-name {
+  min-width: 0;
+}
+.fight-replay .event-name strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+}
+.fight-replay .event-name small {
+  display: block;
+  font-size: 9px;
+  color: hsl(var(--muted-foreground));
+  margin-top: 4px;
+}
+.fight-replay .event-direction {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .event-result {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .event-chevron {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.5;
+}
+.fight-replay .event-empty {
+  padding: 30px 19px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+}
+.fight-replay .site-footer {
+  padding: 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  color: hsl(var(--muted-foreground));
+  font-size: 9px;
+}
+.fight-replay .site-footer > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.fight-replay .footer-separator {
+  opacity: 0.4;
+  margin: 0 4px;
+}
+.fight-replay .media-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  color: #aaa;
+  background: #111;
+  font-size: 12px;
+  padding: 22px;
+  text-align: center;
+}
+.fight-replay .media-message {
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+  padding: 7px 5px;
+}
+.fight-replay .light .outcome-badge.landed {
+  color: #a0502c;
+}
+.fight-replay.light .fighter-a {
+  color: #ad5a38;
+}
+.fight-replay.light .fighter-b {
+  color: #37689f;
+}
+.fight-replay.light .landed {
+  color: #a65f3b;
+}
+.fight-replay.light .blocked {
+  color: #37689f;
+}
+.fight-replay.light .positive {
+  color: #37735a;
+}
+.fight-replay.light .negative {
+  color: #9e5349;
+}
+.fight-replay.light .heat-track {
+  background: #e8e7e5;
+}
+.fight-replay.light .heat-track i {
+  background: #b16e48;
+}
+@media (min-width: 1450px) {
+  .fight-replay .avatar-stage {
+    height: 268px;
+  }
+  .fight-replay .viewer-main {
+    padding-top: 42px;
+  }
+  .fight-replay .page-heading {
+    margin-bottom: 33px;
+  }
+}
+@media (max-width: 1000px) {
+  .fight-replay .main-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+  .fight-replay .session-meta {
+    display: none;
+  }
+  .fight-replay .avatar-stage {
+    height: 217px;
+  }
+  .fight-replay .mirror {
+    padding: 0 8px;
+  }
+  .fight-replay .impact-legend {
+    gap: 8px;
+  }
+  .fight-replay .impact-note {
+    font-size: 8px;
+  }
+  .fight-replay .quote-item + .quote-item {
+    padding-left: 16px;
+  }
+  .fight-replay .brand-description,
+  .fight-replay .brand-divider {
+    display: none;
+  }
+  .fight-replay .viewer-main {
+    padding: 26px 20px 0;
+  }
+  .fight-replay .site-header {
+    padding: 0 20px;
+  }
+  .fight-replay .event-table-header,
+  .fight-replay .event-row {
+    grid-template-columns: 55px minmax(0, 1fr) 90px 95px 14px;
+  }
+}
+@media (max-width: 760px) {
+  .fight-replay .main-grid {
+    grid-template-columns: 1fr;
+  }
+  .fight-replay .video-column {
+    display: contents;
+  }
+  .fight-replay .analysis-column {
+    display: contents;
+  }
+  .fight-replay .video-card {
+    grid-row: 1;
+  }
+  .fight-replay .impact-card {
+    grid-row: 2;
+  }
+  .fight-replay .market-card {
+    grid-row: 3;
+  }
+  .fight-replay .exchange-card {
+    grid-row: 4;
+  }
+  .fight-replay .avatar-stage {
+    height: 260px;
+  }
+  .fight-replay .mirrors {
+    padding: 18px 21px 0;
+  }
+  .fight-replay .mirror {
+    padding: 0 15px;
+  }
+  .fight-replay .impact-note {
+    font-size: 9px;
+  }
+  .fight-replay .impact-legend {
+    font-size: 9px;
+  }
+  .fight-replay .card-description {
+    font-size: 11px;
+  }
+  .fight-replay .body-zone {
+    font-size: 10px;
+  }
+  .fight-replay .body-zone > span:first-child {
+    width: 33px;
+  }
+  .fight-replay .mirror-total {
+    font-size: 9px;
+  }
+  .fight-replay .mirror-identity strong {
+    font-size: 12px;
+  }
+  .fight-replay .received-label {
+    font-size: 9px;
+  }
+  .fight-replay .page-heading h1 {
+    font-size: 24px;
+  }
+  .fight-replay .site-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    line-height: 1.5;
+  }
+  .fight-replay .events-heading > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .fight-replay .event-direction-column {
+    display: none;
+  }
+  .fight-replay .event-table-header,
+  .fight-replay .event-row {
+    grid-template-columns: 43px minmax(0, 1fr) 80px 12px;
+    gap: 8px;
+  }
+  .fight-replay .exchange-observation {
+    max-width: none;
+  }
+  .fight-replay .exchange-card {
+    min-height: 220px;
+  }
+  .fight-replay .market-footer {
+    font-size: 8px;
+  }
+  .fight-replay .page-heading p {
+    font-size: 11px;
+  }
+  .fight-replay .market-chart {
+    margin-top: 15px;
+  }
+  .fight-replay .review-badge {
+    font-size: 9px !important;
+  }
+  .fight-replay .header-actions {
+    gap: 7px;
+  }
+  .fight-replay .site-header {
+    height: 64px;
+  }
+  .fight-replay .fight-strip {
+    margin-bottom: 18px;
+    padding-bottom: 19px;
+  }
+  .fight-replay .fighter-summary {
+    gap: 9px;
+  }
+  .fight-replay .fighter-summary strong {
+    font-size: 13px;
+  }
+  .fight-replay .fighter-summary div > span {
+    font-size: 9px;
+  }
+  .fight-replay .round-summary > span {
+    font-size: 7px;
+    letter-spacing: 0.8px;
+  }
+  .fight-replay .round-summary > strong {
+    font-size: 16px;
+  }
+  .fight-replay .fighter-token {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+  .fight-replay .quote-value {
+    font-size: 36px;
+  }
+}
+@media (max-width: 400px) {
+  .fight-replay .viewer-main {
+    padding: 22px 12px 0;
+  }
+  .fight-replay .site-header {
+    padding: 0 12px;
+  }
+  .fight-replay .brand {
+    font-size: 16px;
+    gap: 8px;
+  }
+  .fight-replay .brand-icon {
+    width: 29px;
+    height: 29px;
+  }
+  .fight-replay .header-actions {
+    gap: 3px;
+  }
+  .fight-replay .review-badge {
+    font-size: 8px !important;
+    padding: 3px 6px !important;
+  }
+  .fight-replay .help-menu summary {
+    padding: 6px;
+  }
+  .fight-replay .page-heading h1 {
+    font-size: 21px;
+  }
+  .fight-replay .page-heading p {
+    font-size: 10px;
+  }
+  .fight-replay .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .fight-replay .fighter-summary {
+    gap: 6px;
+  }
+  .fight-replay .fighter-summary strong {
+    font-size: 11px;
+  }
+  .fight-replay .fighter-token {
+    width: 25px;
+    height: 25px;
+    font-size: 10px;
+  }
+  .fight-replay .round-summary > strong {
+    font-size: 14px;
+  }
+  .fight-replay .round-summary strong span {
+    font-size: 10px;
+  }
+  .fight-replay .mirrors {
+    padding: 16px 9px 0;
+  }
+  .fight-replay .mirror {
+    padding: 0 12px;
+  }
+  .fight-replay .avatar-stage {
+    height: 221px;
+  }
+  .fight-replay .impact-legend {
+    font-size: 8px;
+    gap: 10px;
+  }
+  .fight-replay .impact-note {
+    font-size: 8px;
+  }
+  .fight-replay .heat-scale i {
+    width: 26px;
+  }
+  .fight-replay .card-heading {
+    padding: 16px 15px 0;
+  }
+  .fight-replay .card-heading h2 {
+    font-size: 12px;
+  }
+  .fight-replay .card-heading [data-slot="badge"] {
+    font-size: 8px;
+  }
+  .fight-replay .events-heading {
+    padding: 16px 15px;
+  }
+  .fight-replay .events-heading h2 {
+    font-size: 12px;
+  }
+  .fight-replay .events-heading [data-slot="badge"] {
+    font-size: 8px;
+  }
+  .fight-replay .event-row,
+  .fight-replay .event-table-header {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  .fight-replay .quote-grid {
+    margin-left: 15px;
+    margin-right: 15px;
+  }
+  .fight-replay .quote-value .quote-change {
+    font-size: 8px;
+    margin-left: 5px;
+  }
+  .fight-replay .market-footer {
+    padding-left: 15px;
+    padding-right: 15px;
+    gap: 4px;
+  }
+  .fight-replay .video-bottom-caption {
+    font-size: 7px;
+    letter-spacing: 0.5px;
+  }
+  .fight-replay .event-name strong {
+    font-size: 10px;
+  }
+  .fight-replay .event-result {
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fight-replay *,
+  .fight-replay *::before,
+  .fight-replay *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.fight-replay .silent-footage {
+  font-size: 9px;
+  color: hsl(var(--muted-foreground));
+  margin: 0 6px;
+}
