@@ -34,6 +34,8 @@ flowchart TD
 
 See [the pipeline and validation plan](docs/PIPELINE.md) for model choices, event definitions, latency budgets, and acceptance criteria.
 
+See [the product requirements](docs/PRD.md) for the proposed exchange-impact classification, Jev context contract, and subsequent market-response observation experiment.
+
 ## Planned tools
 
 | Tool | Proposed role | Status |
