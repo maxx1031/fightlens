@@ -1,9 +1,0 @@
-numpy>=1.26
-opencv-python>=4.8
-requests>=2.31
-
-# The clips are encoded with the ffmpeg program when it is on the PATH (the YOLO branch needs it too);
-# without it OpenCV's own encoder is used.
-
-# For running the tests
-pytest>=8
