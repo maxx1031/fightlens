@@ -61,6 +61,14 @@ done
     --fighter-map '{"A":"white shorts","B":"multicolor patterned shorts"}'
 .venv/bin/python win_prob.py outputs/0_realhuman --max-seconds 15 \
     --fighter-map '{"A":"black hoodie and black cap","B":"white jacket and grey pants"}'
+# 3c. Strike candidates, then Cosmos referee + Jev judgment for the engaged clips only
+#     (prompt = task + this clip's YOLO output). Needs COSMOS3_REASON_URL, GPU_BEARER_TOKEN
+#     and OPENROUTER_API_KEY in .env.
+for c in pereira_rountree_45s 0_realhuman; do .venv/bin/python hits.py outputs/$c; done
+.venv/bin/python referee.py outputs/pereira_rountree_45s --max-seconds 10 \
+    --fighter-map '{"A":"white shorts","B":"multicolor patterned shorts"}'
+.venv/bin/python referee.py outputs/0_realhuman --max-seconds 15 \
+    --fighter-map '{"A":"black hoodie and black cap","B":"white jacket and grey pants"}'
 # 4. Join the rounds: clip_dir:start:end:title:A name:B name
 .venv/bin/python concat.py outputs/demo_ufc_local \
     "outputs/pereira_rountree_45s:0:10:UFC 300 replay:PEREIRA:ROUNTREE" \
@@ -74,6 +82,9 @@ done
 | `measure.py` | `outputs/<clip>/measure.jsonl` (per frame: `com_dist`, `reach_A/B`, `ext_A/B`), `measure.mp4` (overlay) |
 | `engage.py` | `outputs/<clip>/exchange.jsonl` (per frame `engaged` 0/1), `windows.jsonl` (FAR / RANGE / ENGAGE sampling windows for the video model), `engage.png` (tuning plot) |
 | `win_prob.py` | `outputs/<clip>/win_prob.jsonl`: per second, `ok` (sampled) or `held` (not engaged, previous value kept), with both raw answers |
+| `hits.py` | `outputs/<clip>/hits.jsonl`: punch/kick contact candidates by zone (2D geometry) |
+| `referee.py` | `outputs/<clip>/referee.jsonl`: per engaged clip (≤ 3 s), the Cosmos verdict (strikes landed / blocked / missed, advantage, note) and the Jev judgment (direction, evidence) |
+| `winprob_server.py` | Local endpoint (127.0.0.1:8787) for the live arcade page: Luna win probability for engaged seconds; the key stays server-side |
 | `concat.py` | `outputs/<name>/`: joined `measure.mp4`, data resampled to 30 fps, `segments.json` (rounds), camera cuts |
 | `viewer.py` | `examples/arcade/data.js`, `analysis.html` (from `viewer_template.html`), `measure.mp4` |
 

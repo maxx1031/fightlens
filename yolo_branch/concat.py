@@ -17,7 +17,9 @@ segments have them) labels_eyeball.json into the output folder.
 If a segment has win_prob.jsonl (win_prob.py), each frame gets win_A: the
 latest probability for A whose one-second window had ended by that frame,
 null before the round's first result. Decision times go to win_points.json.
-Strikes from hits.jsonl (hits.py) are shifted onto the joined timeline in hits.json.
+Strikes from hits.jsonl (hits.py) are shifted onto the joined timeline in hits.json, and
+Cosmos/Jev reviews from referee.jsonl (referee.py) in referee.json; a review becomes
+available at the end of its clip plus the Cosmos latency, as it would live.
 """
 from pathlib import Path
 import argparse
@@ -60,7 +62,7 @@ def main():
 
     # Data: resample each segment onto the joined 30 fps grid (nearest frame).
     measure_rows, exchange_rows, segments, cuts, labels, label_ranges = [], [], [], [], [], []
-    win_points, hits = [], []
+    win_points, hits, referee = [], [], []
     offset = 0.0
     for clip, start, end, names in segs:
         m = [json.loads(line) for line in (clip / "measure.jsonl").open()]
@@ -73,6 +75,14 @@ def main():
                 h = json.loads(line)
                 if start <= h["t"] < end:
                     hits.append({**h, "t": round(offset + h["t"] - start, 3)})
+        ref_file = clip / "referee.jsonl"
+        if ref_file.exists():
+            for line in ref_file.open():
+                r = json.loads(line)
+                if start <= r["t0"] < end:
+                    lag = r.get("cosmos", {}).get("latency_s") or 0
+                    referee.append({**r, "t0": round(offset + r["t0"] - start, 3), "t1": round(offset + min(r["t1"], end) - start, 3),
+                                    "available": round(offset + min(r["t1"], end) - start + lag, 3)})
         wp_file = clip / "win_prob.jsonl"
         wins = [json.loads(line) for line in wp_file.open()] if wp_file.exists() else []
         wins = [w for w in wins if w.get("probabilities") and start < w["end_s"] <= end]
@@ -108,6 +118,7 @@ def main():
         f.writelines(json.dumps(r) + "\n" for r in exchange_rows)
     (out / "win_points.json").write_text(json.dumps(win_points))
     (out / "hits.json").write_text(json.dumps(hits))
+    (out / "referee.json").write_text(json.dumps(referee, ensure_ascii=False))
     (out / "segments.json").write_text(json.dumps(segments, ensure_ascii=False, indent=2))
     (out / "summary.json").write_text(json.dumps(
         {"source_fps": FPS, "video": str((out / "measure.mp4").resolve()), "cuts_s": sorted(cuts)}, indent=2))

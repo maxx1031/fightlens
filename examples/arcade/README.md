@@ -20,6 +20,11 @@ Decisions (via OpenRouter) is asked only for seconds YOLO marks as engaged,
 twice with A/B swapped to cancel its preference for the first-listed fighter.
 Other seconds hold the previous value. It is an uncalibrated model estimate.
 
+The page opens on the data console: the cascade from YOLO sentinel (every frame) to the
+Cosmos referee and Jev judgment (engaged clips only; yolo_branch/referee.py) and the
+decision layer, with charts drawn in step with the replay. Cosmos verdicts appear in the
+exchange-status callout at clip end + measured Cosmos latency.
+
 This is an offline replay of precomputed YOLO measurements, not live inference
 or a connected database. Engagement comes from yolo_branch/engage.py. Punch
 candidates use extension threshold crossings at 0.9, not confirmed hits.
