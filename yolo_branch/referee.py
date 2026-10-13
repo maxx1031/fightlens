@@ -4,7 +4,9 @@
         --fighter-map '{"A":"black hoodie and black cap","B":"white jacket and grey pants"}'
 
 The cascade from the pitch: YOLO (engage.py) marks engaged stretches; only those clips,
-with a little context before and after, are sent on.
+with a little context before and after, are sent on. Each kick YOLO flags is also sent
+as its own short clip (KICK_PAD_S either side of its onset, KICK_FPS, KICK_WIDTH px):
+a kick lasts about 0.3 s and Cosmos misses it inside a longer clip at 4 fps.
   Cosmos  cosmos_branch's exchange prompt: every strike with landed / blocked / missed /
           unclear, who got the better of the passage, and a one-sentence note.
   Jev     the live app's exchange judgment (OpenRouter Decisions, cloudflare/clef-flash):
@@ -43,6 +45,9 @@ SAMPLE_FPS = 4         # frames per second of bout time, as in the live app
 CONTEXT_S = 0.25       # extra time before and after each engaged stretch
 MAX_CLIP_S = 3.0       # longer stretches are split: shorter clips come back faster
 FRAME_WIDTH = 640
+KICK_PAD_S = 0.4       # kick clips: this long before and after the kick's onset
+KICK_FPS = 12
+KICK_WIDTH = 1280
 JEV_MODEL = "cloudflare/clef-flash"
 JEV_URL = "https://openrouter.ai/api/alpha/decisions"
 
@@ -113,6 +118,16 @@ def engaged_clips(clip_dir, max_seconds):
     return clips
 
 
+def kick_clips(clip_dir, max_seconds):
+    """One short clip per kick: engage.py's kick onsets; an onset inside the previous clip joins it."""
+    rows = [json.loads(line) for line in (clip_dir / "exchange.jsonl").open()]
+    clips = []
+    for prev, r in zip([{"kick": 0}] + rows, rows):
+        if r.get("kick") and not prev.get("kick") and r["t"] < max_seconds and not (clips and r["t"] < clips[-1][1]):
+            clips.append((round(max(0.0, r["t"] - KICK_PAD_S), 2), round(min(max_seconds, r["t"] + KICK_PAD_S), 2)))
+    return clips
+
+
 def yolo_evidence(clip_dir, t0, t1):
     """Part two of the prompt: what the YOLO branch measured inside [t0, t1]."""
     rows = [json.loads(line) for line in (clip_dir / "measure.jsonl").open()]
@@ -140,8 +155,8 @@ YOLO_INTRO = ("\n\nPART 2 - YOLO OUTPUT FOR THIS CLIP. A pose tracker measured t
               "Use it as hints for when strikes happen; confirm every strike, target and outcome in the frames:\n")
 
 
-def frames(video, t0, t1):
-    """JPEG frames at SAMPLE_FPS with the bout time printed beneath each one."""
+def frames(video, t0, t1, fps=SAMPLE_FPS, width=FRAME_WIDTH):
+    """JPEG frames at fps, width px wide, with the bout time printed beneath each one."""
     cap = cv2.VideoCapture(str(video))
     out, times = [], []
     t = t0
@@ -149,21 +164,21 @@ def frames(video, t0, t1):
         cap.set(cv2.CAP_PROP_POS_MSEC, t * 1000)
         ok, img = cap.read()
         if ok:
-            h = round(img.shape[0] * FRAME_WIDTH / img.shape[1])
-            img = cv2.resize(img, (FRAME_WIDTH, h))
+            h = round(img.shape[0] * width / img.shape[1])
+            img = cv2.resize(img, (width, h))
             img = cv2.copyMakeBorder(img, 0, 30, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0))
             cv2.putText(img, f"{t:.2f} s", (10, h + 22), cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
             out.append("data:image/jpeg;base64," + base64.b64encode(cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 80])[1]).decode())
             times.append(round(t, 2))
-        t += 1 / SAMPLE_FPS
+        t += 1 / fps
     cap.release()
     return out, times
 
 
-def cosmos(url, token, model, t0, t1, shots, fighters, yolo):
+def cosmos(url, token, model, t0, t1, shots, fighters, yolo, fps=SAMPLE_FPS):
     clip = SimpleNamespace(t0=t0, t1=t1, speed=1, cropped=False, tagged=False)
     prompt = "PART 1 - TASK\n" + exchange_prompt(clip, fighters) + YOLO_INTRO + json.dumps(yolo, separators=(",", ":"))
-    window = Window(t0, t1, "exchange", "yolo:ENGAGE", SAMPLE_FPS)
+    window = Window(t0, t1, "exchange", "yolo:ENGAGE", fps)
     body = {"model": model, "temperature": 0, "max_tokens": 4096, "messages": [
         {"role": "system", "content": EXCHANGE_SYSTEM},
         {"role": "user", "content": [{"type": "text", "text": prompt},
@@ -214,16 +229,19 @@ def main():
         cosmos_model = json.loads(response.read())["data"][0]["id"]
     client = OpenRouterDecisionClient(JEV_URL, key, timeout_s=60)
 
-    clips = engaged_clips(clip_dir, args.max_seconds)
-    covered = sum(b - a for a, b in clips)
-    print(f"{clip_dir.name}: {len(clips)} engaged clips, {covered:.1f}s of {args.max_seconds:.0f}s sent; "
-          f"Cosmos {cosmos_model}, Jev {JEV_MODEL}", flush=True)
+    engaged, kicks = engaged_clips(clip_dir, args.max_seconds), kick_clips(clip_dir, args.max_seconds)
+    covered = sum(b - a for a, b in engaged)
+    print(f"{clip_dir.name}: {len(engaged)} engaged clips, {covered:.1f}s of {args.max_seconds:.0f}s sent, "
+          f"plus {len(kicks)} kick clips; Cosmos {cosmos_model}, Jev {JEV_MODEL}", flush=True)
+    clips = sorted([(a, b, "exchange", SAMPLE_FPS, FRAME_WIDTH) for a, b in engaged]
+                   + [(a, b, "kick", KICK_FPS, KICK_WIDTH) for a, b in kicks])
     with (clip_dir / "referee.jsonl").open("w") as out, ThreadPoolExecutor(max_workers=2) as pool:
-        for t0, t1 in clips:
-            shots, times = frames(video, t0, t1)
+        for t0, t1, kind, fps, width in clips:
+            shots, times = frames(video, t0, t1, fps, width)
             yolo = yolo_evidence(clip_dir, t0, t1)
-            record = {"t0": t0, "t1": t1, "frames": len(shots), "fighters": fighters, "yolo_strikes": len(yolo["strikes"])}
-            jobs = {"cosmos": pool.submit(cosmos, url, token, cosmos_model, t0, t1, shots, fighters, yolo),
+            record = {"t0": t0, "t1": t1, "kind": kind, "frames": len(shots), "fighters": fighters,
+                      "yolo_strikes": len(yolo["strikes"])}
+            jobs = {"cosmos": pool.submit(cosmos, url, token, cosmos_model, t0, t1, shots, fighters, yolo, fps),
                     "jev": pool.submit(jev, client, t0, t1, shots, times, fighters, yolo)}
             for name, job in jobs.items():
                 try:
@@ -234,7 +252,7 @@ def main():
             out.flush()
             c, j = record["cosmos"], record["jev"]
             strikes = "; ".join(f"{s['attacker']} {s['move'] or s['limb']}->{s['target']} {s['outcome']}" for s in c.get("strikes", []))
-            print(f"  {t0:5.2f}-{t1:5.2f}s ({len(shots)} frames)\n"
+            print(f"  {t0:5.2f}-{t1:5.2f}s {kind} ({len(shots)} frames)\n"
                   f"    Cosmos: {c.get('note') or c.get('error')}  [{strikes}] advantage={c.get('advantage')}\n"
                   f"    Jev: {j.get('direction', {}).get('choice') or j.get('error')} / {j.get('evidence', {}).get('choice', '')}", flush=True)
 

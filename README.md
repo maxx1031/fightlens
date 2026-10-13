@@ -21,6 +21,29 @@ Click a preview to open the full recording (MP4; download or open with "View raw
 
 Screen recordings of the offline arcade replay (precomputed YOLO measurements and Luna Decisions estimates), 1920×972, 30 fps, no audio.
 
+### Win probability: frames only vs frames + Cosmos
+
+| Same frames, two estimates (35 s) |
+| --- |
+| [![Preview: the same UFC round with two win-probability estimates; the one that also reads NVIDIA Cosmos verdicts moves toward Pereira after Cosmos reports his landed jabs and a low kick](docs/demo/winprob_compare_ufc-preview.gif)](docs/demo/winprob_compare_ufc.mp4) |
+| [▶ Play the comparison](docs/demo/winprob_compare_ufc.mp4) |
+
+A usual win-probability model only looks at video frames. Here the same model (Luna
+Decisions) is asked twice per engaged second, with the same frames. The second run also
+receives what NVIDIA Cosmos Reason concluded about the exchanges YOLO flagged: who threw
+what, at which target, and whether it landed, was blocked or missed. Frames show movement;
+Cosmos says what the movement was. A low kick to the leg and a blocked jab look alike as
+pixels, but they are different evidence.
+
+On the first 30 s of Pereira vs Rountree Jr. (UFC 307, round 1), frames only stays at
+85–99% for Rountree. With Cosmos, the estimate drops once Cosmos reports Pereira's two
+landed jabs, crosses to Pereira at 0:14, and ends at 66% Pereira. Pereira won by TKO in
+round 4. That is one round and one run, not a measured accuracy: the estimates are
+uncalibrated, Cosmos verdicts vary between runs (the 0:02–0:04 jabs were judged landed in
+5 of 6 runs), and Cosmos did not recognise Pereira's head kick at 0:24. Recorded from
+[examples/arcade/compare.html](examples/arcade/README.md#same-frames-two-estimates-comparehtml); 1920×1080, 30 fps, captions
+burned in, no audio.
+
 ## Why FightLens
 
 During a fast exchange, a viewer has only a moment to decide: did that punch land, was it blocked, and who now has the advantage?

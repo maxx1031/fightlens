@@ -32,3 +32,18 @@ Pressure is a visual mapping: 100 × clamp(1 - reach / 1.5, 0, 1) × arm
 extension. It is not damage or health.
 
 measure.mp4 has the pose overlays baked in.
+
+## Same frames, two estimates (compare.html)
+
+compare.html plays one round with two win-probability estimates from the same frames:
+frames only, and frames plus the NVIDIA Cosmos verdicts that had arrived by then (each
+verdict appears at clip end + measured Cosmos latency). Data: compare_data.js from
+yolo_branch/compare.py. Captions and chapter labels: compare_captions.js, one line per
+caption as [start s, end s, caption, event line]; `compare.html?nocaps` hides them.
+The page needs ufc.mp4 (not in Git; make it with step 6 of yolo_branch/README.md) and an
+HTTP server that supports range requests, for seeking:
+
+    npx serve -l 8080 examples/arcade      # then open http://localhost:8080/compare
+
+`window.cmpSeek(t)` renders the page at clip time t; the recording in
+docs/demo/winprob_compare_ufc.mp4 was made by stepping it at 30 fps in headless Chrome.

@@ -3,11 +3,13 @@
     python engage.py outputs/pereira_rountree_45s
 
 Reads <clip>/keypoints.jsonl (track.py) and writes, in the same folder:
-exchange.jsonl (per frame: engaged 0/1), windows.jsonl (Cosmos frame-sampling
+exchange.jsonl (per frame: engaged 0/1, kick 0/1), windows.jsonl (Cosmos frame-sampling
 windows) and engage.png (signals with state background, for tuning).
 
 ENGAGE (engaged = 1) means someone is attacking -- an arm extends or a limb
 moves fast -- while the two are within striking range, or they are clinched.
+Kicks get a longer range of their own: a low kick reaches the opponent's lead leg
+from farther out than a punch reaches anything.
 Standing close in guard without attacking is RANGE (engaged = 0).
 All signals are causal (trailing smoothing) so the same logic can run live.
 """
@@ -40,6 +42,8 @@ D_ATTACK_RANGE = 2.2        # hip-midpoint distance (torso lengths) within which
 D_CLINCH = 0.9              # closer than this is engaged even without limb motion
 EXT_ATTACK = 0.85           # arm extension: wrist-shoulder / (upper arm + forearm); 1 = straight
 W_ATTACK = 6.5              # max wrist/ankle speed rel. to own hips, torso lengths / s
+D_KICK_RANGE = 3.0          # kicks: hip distance within which a kick can land (lead leg, head)
+W_KICK = 7.0                # kicks: ankle speed that counts as a kick (as in hits.py)
 ENGAGE_HOLD_S = 1.0         # attacks closer together than this belong to one exchange
 EXCHANGE_PAD_S = 0.25       # engaged = 1 this long before the first / after the last attack
 
@@ -54,7 +58,7 @@ ENGAGE_PAD_S = 0.25
 ENGAGE_MAX_S = 2.0
 SAMPLE_FPS = {"FAR": 0.5, "RANGE": 4.0}     # ENGAGE uses the source frame rate
 STATE_COLORS = {"FAR": "#d9e6f2", "RANGE": "#ffe3a3", "ENGAGE": "#ffb3b3", "MISSING": "#dddddd"}
-LIMBS = (9, 10, 15, 16)     # wrists, ankles
+LIMBS = (9, 10, 15, 16)     # wrists, ankles (the last two)
 ARMS = ((5, 7, 9), (6, 8, 10))  # shoulder, elbow, wrist
 
 
@@ -157,10 +161,13 @@ def signals(t, kp, fps, cuts):
     # Limb speed relative to the fighter's own hips, so camera pans do not count.
     rel = kp[:, :, LIMBS, :] - hips[:, :, None, :]
     speed = np.linalg.norm(np.diff(rel, axis=0), axis=-1) * fps / scale[1:, None, None]
-    w = np.full(len(t), np.nan)
-    w[1:] = np.where(np.isnan(speed).all(axis=(1, 2)), np.nan,
-                     np.nanmax(np.where(np.isnan(speed), -np.inf, speed), axis=(1, 2)))
-    w = trailing_mean(interp_short(guard(w, cuts), fps), SMOOTH_FRAMES)
+
+    def fastest(sp):  # fastest of these limbs, either fighter, smoothed like d
+        out = np.full(len(t), np.nan)
+        out[1:] = np.where(np.isnan(sp).all(axis=(1, 2)), np.nan,
+                           np.nanmax(np.where(np.isnan(sp), -np.inf, sp), axis=(1, 2)))
+        return trailing_mean(interp_short(guard(out, cuts), fps), SMOOTH_FRAMES)
+    w, w_kick = fastest(speed), fastest(speed[:, :, 2:])
 
     # Arm extension of the most extended arm of either fighter.
     exts = []
@@ -173,14 +180,21 @@ def signals(t, kp, fps, cuts):
     ext = np.where(np.isnan(exts).all(axis=1), np.nan,
                    np.nanmax(np.where(np.isnan(exts), -np.inf, exts), axis=1))
     ext = trailing_mean(interp_short(guard(ext, cuts), fps), SMOOTH_FRAMES)
-    return d, d_dot, w, ext
+    return d, d_dot, w, w_kick, ext
 
 
-def exchange_mask(t, d, w, ext):
+def kick_mask(d, w_kick):
+    """kick 0/1 per frame: a fast ankle within kicking range."""
+    with np.errstate(invalid="ignore"):
+        return (d < D_KICK_RANGE) & (np.nan_to_num(w_kick) >= W_KICK)
+
+
+def exchange_mask(t, d, w, w_kick, ext):
     """engaged 0/1 per frame: attack frames merged within ENGAGE_HOLD_S, padded by EXCHANGE_PAD_S."""
     with np.errstate(invalid="ignore"):
         in_range = d < D_ATTACK_RANGE
         attack = in_range & ((np.nan_to_num(w) >= W_ATTACK) | (np.nan_to_num(ext) >= EXT_ATTACK))
+        attack |= kick_mask(d, w_kick)
         attack |= d < D_CLINCH
     segs = []
     for i in np.where(attack)[0]:
@@ -289,7 +303,7 @@ def plot(t, d, d_dot, w, ext, engaged, states, cuts, path):
     import matplotlib.pyplot as plt
     fig, axes = plt.subplots(5, 1, figsize=(12, 9), sharex=True,
                              gridspec_kw={"height_ratios": [3, 3, 3, 3, 1.2]})
-    series = [(d, "d (hip distance / torso)", [D_CLINCH, D_ATTACK_RANGE, D_RANGE_IN]),
+    series = [(d, "d (hip distance / torso)", [D_CLINCH, D_ATTACK_RANGE, D_RANGE_IN, D_KICK_RANGE]),
               (d_dot, "d_dot (/s, negative = closing)", [DDOT_RANGE_IN]),
               (w, "w (max limb speed, torso/s)", [W_ATTACK]),
               (ext, "arm extension (1 = straight)", [EXT_ATTACK])]
@@ -332,8 +346,9 @@ def main():
 
     summary = json.loads(summary_path.read_text()) if summary_path.exists() else {}
     cuts = find_cuts(summary["video"], len(t)) if summary.get("video") else []
-    d, d_dot, w, ext = signals(t, kp, fps, cuts)
-    engaged = exchange_mask(t, d, w, ext)
+    d, d_dot, w, w_kick, ext = signals(t, kp, fps, cuts)
+    engaged = exchange_mask(t, d, w, w_kick, ext)
+    kick = kick_mask(d, w_kick)
     states = run_states(t, d, d_dot, engaged)
     windows = build_windows(t, states, d, d_dot, w, fps, duration)
 
@@ -344,7 +359,7 @@ def main():
                                 "camera_cuts_s": win_cuts}) + "\n")
     with (clip_dir / "exchange.jsonl").open("w") as f:
         for i in range(len(t)):
-            f.write(json.dumps({"t": round(float(t[i]), 3), "engaged": int(engaged[i])}) + "\n")
+            f.write(json.dumps({"t": round(float(t[i]), 3), "engaged": int(engaged[i]), "kick": int(kick[i])}) + "\n")
     plot(t, d, d_dot, w, ext, engaged, states, cuts, clip_dir / "engage.png")
 
     seconds = {s: round(sum(win["end"] - win["start"] for win in windows if win["state"] == s), 2)
